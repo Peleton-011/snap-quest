@@ -1,35 +1,70 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from "react";
+import { Box, Button, Grid, Typography } from "@mui/material";
+import CameraModal from "./components/CameraModal";
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+interface Tile {
+    id: number;
+    prompt: string;
+    completed: boolean;
+    image: string | null;
 }
 
-export default App
+const promptSet = [
+    "Find a book with a title that describes us",
+    "A book with the weirdest cover",
+    "A book you think I’d love",
+    "Find a mystery book",
+    "Find a book over 500 pages",
+];
+
+const App: React.FC = () => {
+    const [tiles, setTiles] = useState<Tile[]>(
+        promptSet.map((prompt, idx) => ({
+            id: idx,
+            prompt,
+            completed: false,
+            image: null,
+        }))
+    );
+    const [activeTile, setActiveTile] = useState<Tile | null>(null);
+
+    const markTileCompleted = (id: number, image: string) => {
+        setTiles((prevTiles) =>
+            prevTiles.map((tile) =>
+                tile.id === id ? { ...tile, completed: true, image } : tile
+            )
+        );
+        setActiveTile(null);
+    };
+
+    return (
+        <Box p={4}>
+            <Typography variant="h4" gutterBottom>
+                SnapQuest: Bingo
+            </Typography>
+            <Grid container spacing={2}>
+                {tiles.map((tile) => (
+                    <Grid item xs={4} key={tile.id}>
+                        <Button
+                            fullWidth
+                            variant={tile.completed ? "contained" : "outlined"}
+                            color={tile.completed ? "success" : "primary"}
+                            onClick={() => setActiveTile(tile)}
+                        >
+                            {tile.prompt}
+                        </Button>
+                    </Grid>
+                ))}
+            </Grid>
+            {activeTile && (
+                <CameraModal
+                    tile={activeTile}
+                    onClose={() => setActiveTile(null)}
+                    onSave={markTileCompleted}
+                />
+            )}
+        </Box>
+    );
+};
+
+export default App;
