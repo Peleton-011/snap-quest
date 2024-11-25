@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import cors from "cors";
 import multer from "multer";
 import path from "path";
@@ -8,6 +8,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Extend Express Request type to include multer properties
+interface MulterRequest extends Request {
+    file?: Express.Multer.File;
+}
+
 // Set up multer for image uploads
 const upload = multer({ dest: "uploads/" });
 
@@ -15,7 +20,7 @@ const upload = multer({ dest: "uploads/" });
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Endpoint to fetch prompt sets
-const promptSets = {
+const promptSets: { [key: string]: string[] } = {
     default: [
         "Find a book with a title that describes us",
         "A book with the weirdest cover",
@@ -28,15 +33,16 @@ const promptSets = {
     ],
 };
 
-app.get("/prompts/:set", (req, res) => {
+app.get("/prompts/:set", (req: Request, res: Response) => {
     const set = req.params.set;
     res.json(promptSets[set] || promptSets.default);
 });
 
 // Endpoint to handle image uploads
-app.post("/upload", upload.single("photo"), (req, res) => {
+app.post("/upload", upload.single("photo"), (req: MulterRequest, res: Response) => {
     if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
+        res.status(400).json({ error: "No file uploaded" });
+        return;
     }
 
     // Return the file URL for frontend to display
@@ -45,7 +51,7 @@ app.post("/upload", upload.single("photo"), (req, res) => {
 });
 
 // Clean up uploaded files (optional for production)
-app.get("/cleanup", (req, res) => {
+app.get("/cleanup", (req: Request, res: Response) => {
     const directory = path.join(__dirname, "uploads");
     fs.readdir(directory, (err, files) => {
         if (err) throw err;
