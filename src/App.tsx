@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Box, Button, Grid, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
+import Grid from "@mui/material/Grid2"; 
 import CameraModal from "./components/CameraModal";
 
 interface Tile {
