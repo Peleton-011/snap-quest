@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { uploadPhoto } from "../services/api";
 import { Box, Button, Dialog, DialogActions, DialogContent, Typography } from "@mui/material";
 
 interface CameraModalProps {
@@ -10,12 +11,11 @@ interface CameraModalProps {
 const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave }) => {
     const [image, setImage] = useState<string | null>(null);
 
-    const handleCapture = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleCapture = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onload = () => setImage(reader.result as string);
-            reader.readAsDataURL(file);
+            const url = await uploadPhoto(file);
+            setImage(url); // Use backend-uploaded URL
         }
     };
 
