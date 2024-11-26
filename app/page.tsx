@@ -1,95 +1,72 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+import React, { useState } from "react";
+import { Box, Button, Typography } from "@mui/material";
+import Grid from "@mui/material/Grid"; 
+import CameraModal from "./components/CameraModal";
 
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+interface Tile {
+    id: number;
+    prompt: string;
+    completed: boolean;
+    image: string | null;
 }
+
+const promptSet = [
+    "Find a book with a title that describes us",
+    "A book with the weirdest cover",
+    "A book you think I’d love",
+    "Find a mystery book",
+    "Find a book over 500 pages",
+];
+
+const App: React.FC = () => {
+    const [tiles, setTiles] = useState<Tile[]>(
+        promptSet.map((prompt, idx) => ({
+            id: idx,
+            prompt,
+            completed: false,
+            image: null,
+        }))
+    );
+    const [activeTile, setActiveTile] = useState<Tile | null>(null);
+
+    const markTileCompleted = (id: number, image: string) => {
+        setTiles((prevTiles) =>
+            prevTiles.map((tile) =>
+                tile.id === id ? { ...tile, completed: true, image } : tile
+            )
+        );
+        setActiveTile(null);
+    };
+
+    return (
+        <Box p={4}>
+            <Typography variant="h4" gutterBottom>
+                SnapQuest: Bingo
+            </Typography>
+            <Grid container spacing={2}>
+                {tiles.map((tile) => (
+                    <Grid item xs={4} key={tile.id}>
+                        <Button
+                            fullWidth
+                            variant={tile.completed ? "contained" : "outlined"}
+                            color={tile.completed ? "success" : "primary"}
+                            onClick={() => setActiveTile(tile)}
+                        >
+                            {tile.prompt}
+                        </Button>
+                    </Grid>
+                ))}
+            </Grid>
+            {activeTile && (
+                <CameraModal
+                    tile={activeTile}
+                    onClose={() => setActiveTile(null)}
+                    onSave={markTileCompleted}
+                />
+            )}
+        </Box>
+    );
+};
+
+export default App;
