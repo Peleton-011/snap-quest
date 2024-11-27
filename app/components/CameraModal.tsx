@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { uploadPhoto } from "../services/api";
 import {
 	Box,
 	Button,
@@ -10,13 +9,13 @@ import {
 } from "@mui/material";
 
 interface CameraModalProps {
-	tile: { id: number; prompt: string };
+	tile: { id: number; prompt: string; image: string | null };
 	onClose: () => void;
-	onSave: (id: number, image: string) => void;
+	onSave: (id: number, image: string | null) => void;
 }
 
 const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave }) => {
-	const [image, setImage] = useState<string | null>(null);
+	const [image, setImage] = useState<string | null>(tile.image);
 
 	const handleCapture = async (
 		event: React.ChangeEvent<HTMLInputElement>
@@ -28,10 +27,21 @@ const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave }) => {
 		}
 	};
 
-	const handleSave = () => {
+	const handleDelete = () => {
+		setImage(null);
+	};
+
+	const handleDownload = () => {
 		if (image) {
-			onSave(tile.id, image);
+			const link = document.createElement("a");
+			link.href = image;
+			link.download = `tile-${tile.id}.jpg`;
+			link.click();
 		}
+	};
+
+	const handleSave = () => {
+		onSave(tile.id, image);
 	};
 
 	return (
@@ -44,11 +54,28 @@ const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave }) => {
 							<img
 								src={image}
 								alt="Preview"
-								style={{ width: "100%" }}
+								style={{ width: "100%", borderRadius: "4px" }}
 							/>
-							<Button onClick={() => setImage(null)}>
-								Retake Photo
-							</Button>
+							<Box
+								display="flex"
+								justifyContent="space-between"
+								mt={2}
+							>
+								<Button
+									variant="outlined"
+									color="secondary"
+									onClick={handleDelete}
+								>
+									Delete Image
+								</Button>
+								<Button
+									variant="outlined"
+									color="primary"
+									onClick={handleDownload}
+								>
+									Download Image
+								</Button>
+							</Box>
 						</Box>
 					) : (
 						<Button variant="contained" component="label">

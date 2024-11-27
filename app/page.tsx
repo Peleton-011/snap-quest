@@ -41,11 +41,16 @@ const App: React.FC = () => {
 		loadPrompts();
 	}, [promptSet]);
 
+	// Open Camera Modal when a tile is clicked
+	const handleTileClick = (tile: Tile) => {
+		setActiveTile(tile);
+	};
+
 	// Mark a tile as completed and save its image
-	const markTileCompleted = (id: number, image: string) => {
+	const updateTileImage = (id: number, image: string | null) => {
 		setTiles((prevTiles) =>
 			prevTiles.map((tile) =>
-				tile.id === id ? { ...tile, completed: true, image } : tile
+				tile.id === id ? { ...tile, completed: !!image, image } : tile
 			)
 		);
 		setActiveTile(null);
@@ -106,11 +111,20 @@ const App: React.FC = () => {
 					<Grid item xs={4} key={tile.id}>
 						<Button
 							fullWidth
+							onClick={() => handleTileClick(tile)}
+							style={{
+								backgroundImage: tile.image
+									? `url(${tile.image})`
+									: "none",
+								backgroundSize: "cover",
+								backgroundPosition: "center",
+								height: 100,
+								color: tile.image ? "white" : "inherit",
+							}}
 							variant={tile.completed ? "contained" : "outlined"}
 							color={tile.completed ? "success" : "primary"}
-							onClick={() => setActiveTile(tile)}
 						>
-							{tile.prompt}
+							{!tile.image && tile.prompt}
 						</Button>
 					</Grid>
 				))}
@@ -121,7 +135,7 @@ const App: React.FC = () => {
 				<CameraModal
 					tile={activeTile}
 					onClose={() => setActiveTile(null)}
-					onSave={markTileCompleted}
+					onSave={updateTileImage}
 				/>
 			)}
 
