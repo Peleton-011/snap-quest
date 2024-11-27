@@ -5,7 +5,7 @@ import path from "path";
 // Multer setup for file uploads
 import { upload } from "../utils/multerConfig";
 
-export default async function POST(req: Request, res: Response) {
+export async function POST(req: Request, res: Response) {
 	upload.single("photo")(req, res, (err) => {
 		if (err) {
 			return res.status(400).json({ error: "File upload failed" });
