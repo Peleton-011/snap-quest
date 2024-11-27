@@ -79,6 +79,7 @@ const App: React.FC = () => {
 				<select
 					value={promptSet}
 					onChange={(e) => setPromptSet(e.target.value)}
+                    defaultValue={"select..."}
 				>
 					<option value="books">Books</option>
 					<option value="art">Art</option>
