@@ -55,7 +55,7 @@ const App: React.FC = () => {
 	const downloadPDF = async () => {
 		try {
 			setIsGeneratingPDF(true);
-			const pdfBlob = await generatePDF(tiles);
+			const pdfBlob = await generatePDF("SnapQuest: " + promptSet, tiles);
 			const url = URL.createObjectURL(pdfBlob);
 			const link = document.createElement("a");
 			link.href = url;
