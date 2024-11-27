@@ -1,26 +1,52 @@
 import { PDFDocument, rgb } from "pdf-lib";
 
-export const generatePDF = async (tiles: { prompt: string; image: string | null }[]) => {
+const PAGE_WIDTH = 600;
+const PAGE_HEIGHT = 800;
+const MARGIN = 50;
+const ROW_HEIGHT = 120; // Space for one row of image and text
+const IMAGE_WIDTH = 100;
+const IMAGE_HEIGHT = 100;
+
+export const generatePDF = async (title: string, tiles: { prompt: string; image: string | null }[]) => {
   const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([600, 800]);
 
-  page.drawText("SnapQuest Bingo", { x: 50, y: 750, size: 24, color: rgb(0, 0.53, 0.71) });
+  let page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+  let yPosition = PAGE_HEIGHT - MARGIN;
 
-  let y = 700;
+  page.drawText(title, {
+    x: MARGIN,
+    y: yPosition,
+    size: 24,
+    color: rgb(0, 0.53, 0.71),
+  });
+
+  yPosition -= 40; // Move down after title
+
   for (const tile of tiles) {
-    page.drawText(tile.prompt, { x: 50, y, size: 12 });
+    if (yPosition < MARGIN + ROW_HEIGHT) {
+      page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+      yPosition = PAGE_HEIGHT - MARGIN;
+    }
+
+    page.drawText(tile.prompt, {
+      x: MARGIN + IMAGE_WIDTH + 10,
+      y: yPosition - IMAGE_HEIGHT / 2,
+      size: 12,
+      color: rgb(0, 0, 0),
+    });
 
     if (tile.image) {
       const imageBytes = await fetch(tile.image).then((res) => res.arrayBuffer());
       const jpgImage = await pdfDoc.embedJpg(imageBytes);
-      page.drawImage(jpgImage, { x: 50, y: y - 60, width: 100, height: 100 });
+      page.drawImage(jpgImage, {
+        x: MARGIN,
+        y: yPosition - IMAGE_HEIGHT,
+        width: IMAGE_WIDTH,
+        height: IMAGE_HEIGHT,
+      });
     }
 
-    y -= 120;
-    if (y < 100) {
-      y = 700;
-      pdfDoc.addPage([600, 800]);
-    }
+    yPosition -= ROW_HEIGHT; // Move down for the next row
   }
 
   const pdfBytes = await pdfDoc.save();
