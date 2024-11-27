@@ -5,6 +5,7 @@ import { Box, Button, Typography, Grid } from "@mui/material";
 import CameraModal from "./components/CameraModal";
 import { fetchPrompts } from "./services/api";
 import { generatePDF } from "./services/pdfGenerator";
+import { downloadImagesAsZip } from "./services/zipImages";
 
 interface Tile {
 	id: number;
@@ -16,8 +17,9 @@ interface Tile {
 const App: React.FC = () => {
 	const [tiles, setTiles] = useState<Tile[]>([]);
 	const [activeTile, setActiveTile] = useState<Tile | null>(null);
-	const [promptSet, setPromptSet] = useState("Select..."); // Track the selected prompt set
+	const [promptSet, setPromptSet] = useState("default"); // Track the selected prompt set
 	const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+	const [isDownloadingImages, setIsDownloadingImages] = useState(false);
 
 	// Load prompts dynamically from the server
 	useEffect(() => {
@@ -53,7 +55,7 @@ const App: React.FC = () => {
 	const downloadPDF = async () => {
 		try {
 			setIsGeneratingPDF(true);
-			const pdfBlob = await generatePDF("SnapQuest: " + promptSet, tiles);
+			const pdfBlob = await generatePDF(tiles);
 			const url = URL.createObjectURL(pdfBlob);
 			const link = document.createElement("a");
 			link.href = url;
@@ -64,6 +66,18 @@ const App: React.FC = () => {
 			console.error("Failed to generate PDF:", error);
 		} finally {
 			setIsGeneratingPDF(false);
+		}
+	};
+
+	// Download all images as a zip file
+	const downloadImages = async () => {
+		try {
+			setIsDownloadingImages(true);
+			await downloadImagesAsZip(tiles);
+		} catch (error) {
+			console.error("Failed to download images:", error);
+		} finally {
+			setIsDownloadingImages(false);
 		}
 	};
 
@@ -80,9 +94,9 @@ const App: React.FC = () => {
 					value={promptSet}
 					onChange={(e) => setPromptSet(e.target.value)}
 				>
-                    <option value="Select...">Select...</option>
-					<option value="books">Books</option>
-					<option value="art">Art</option>
+					<option value="default">Default</option>
+					<option value="bookstore">Bookstore</option>
+					<option value="custom">Custom</option>
 				</select>
 			</Box>
 
@@ -111,7 +125,7 @@ const App: React.FC = () => {
 				/>
 			)}
 
-			{/* Generate PDF Button */}
+			{/* Download Buttons */}
 			<Box mt={4} textAlign="center">
 				<Button
 					variant="contained"
@@ -121,10 +135,24 @@ const App: React.FC = () => {
 						isGeneratingPDF ||
 						tiles.every((tile) => !tile.completed)
 					}
+					style={{ marginRight: "10px" }}
 				>
 					{isGeneratingPDF
 						? "Generating PDF..."
 						: "Download Bingo PDF"}
+				</Button>
+				<Button
+					variant="contained"
+					color="secondary"
+					onClick={downloadImages}
+					disabled={
+						isDownloadingImages ||
+						tiles.every((tile) => !tile.image)
+					}
+				>
+					{isDownloadingImages
+						? "Downloading Images..."
+						: "Download Images"}
 				</Button>
 			</Box>
 		</Box>
