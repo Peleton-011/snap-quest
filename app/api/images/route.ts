@@ -2,28 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { promises as fsPromises } from "fs";
 import path from "path";
 import { PDFDocument } from "pdf-lib";
-import multer from "multer";
-import { NextApiRequest, NextApiResponse } from "next";
+import formidable from "formidable";
 
-// Temporary storage setup using multer
+// Directory to temporarily store uploaded images
 const uploadDir = path.join(process.cwd(), "uploads");
-const upload = multer({ dest: uploadDir });
 
-// Middleware to handle multipart form data
-const multerMiddleware = (req: any, res: any, next: any) => {
-  upload.array("images", 25)(req, res, (err: any) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: "File upload failed" });
-    }
-    next();
-  });
+// Ensure the directory exists
+const ensureUploadDir = async () => {
+  try {
+    await fsPromises.mkdir(uploadDir, { recursive: true });
+  } catch (err) {
+    console.error("Error ensuring upload directory exists:", err);
+  }
 };
 
-// Temporary storage for file paths
+// Temporary storage for uploaded file paths
 let uploadedImages: string[] = [];
 
-// Utility function to clean up files
+// Utility to clean up files
 const cleanUp = async (files: string[]) => {
   for (const file of files) {
     try {
@@ -34,29 +30,45 @@ const cleanUp = async (files: string[]) => {
   }
 };
 
-// POST endpoint to upload images
-export async function POST(req: NextRequest & NextApiRequest, res: NextApiResponse) {
-  return new Promise((resolve) => {
-    multerMiddleware(req, res, async () => {
-      const files = (req as any).files as Express.Multer.File[];
-      if (!files || files.length === 0) {
-        return resolve(
-          NextResponse.json({ error: "No images uploaded" }, { status: 400 })
-        );
-      }
+// POST endpoint: Handle file upload
+export async function POST(req: NextRequest) {
+  await ensureUploadDir();
 
-      // Store file paths temporarily
-      uploadedImages = files.map((file) => file.path);
-
-      resolve(
-        NextResponse.json({ message: "Images uploaded successfully" })
-      );
-    });
+  const form = formidable({
+    multiples: true,
+    uploadDir: uploadDir,
+    keepExtensions: true,
   });
+
+  try {
+    const { files } = await new Promise<{ fields: formidable.Fields; files: formidable.Files }>(
+      (resolve, reject) => {
+        form.parse(req.body as any, (err, fields, files) => {
+          if (err) reject(err);
+          else resolve({ fields, files });
+        });
+      }
+    );
+
+    if (!files || Object.keys(files).length === 0) {
+      return NextResponse.json({ error: "No images uploaded" }, { status: 400 });
+    }
+
+    // Safely map file paths
+    const fileArray = Array.isArray(files.images) ? files.images : [files.images];
+    uploadedImages = fileArray
+      .filter((file): file is formidable.File => Boolean(file && "filepath" in file)) // Type guard to ensure `file` is `formidable.File`
+      .map((file) => file.filepath);
+
+    return NextResponse.json({ message: "Images uploaded successfully" });
+  } catch (error) {
+    console.error("Error handling file upload:", error);
+    return NextResponse.json({ error: "File upload failed" }, { status: 500 });
+  }
 }
 
-// GET endpoint to generate and return a PDF
-export async function GET(req: NextRequest) {
+// GET endpoint: Generate PDF from uploaded images
+export async function GET() {
   if (uploadedImages.length === 0) {
     return NextResponse.json({ error: "No images available for PDF" }, { status: 400 });
   }
@@ -84,7 +96,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error generating PDF:", error);
     return NextResponse.json({ error: "Failed to generate PDF" }, { status: 500 });
   }
 }
