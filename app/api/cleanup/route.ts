@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import fs from "fs";
 import path from "path";
 
-export default function GET(req: Request, res: Response) {
+export async function GET(req: Request, res: Response) {
     const directory = path.join(__dirname, "../uploads");
     fs.readdir(directory, (err, files) => {
         if (err) {
