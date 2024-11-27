@@ -17,7 +17,7 @@ interface Tile {
 const App: React.FC = () => {
 	const [tiles, setTiles] = useState<Tile[]>([]);
 	const [activeTile, setActiveTile] = useState<Tile | null>(null);
-	const [promptSet, setPromptSet] = useState("default"); // Track the selected prompt set
+	const [promptSet, setPromptSet] = useState("select"); // Track the selected prompt set
 	const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 	const [isDownloadingImages, setIsDownloadingImages] = useState(false);
 
@@ -94,9 +94,9 @@ const App: React.FC = () => {
 					value={promptSet}
 					onChange={(e) => setPromptSet(e.target.value)}
 				>
-					<option value="default">Default</option>
-					<option value="bookstore">Bookstore</option>
-					<option value="custom">Custom</option>
+					<option value="select">Select...</option>
+					<option value="books">Books</option>
+					<option value="art">Art</option>
 				</select>
 			</Box>
 
