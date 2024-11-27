@@ -23,7 +23,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave }) => {
 	) => {
 		const file = event.target.files?.[0];
 		if (file) {
-			const url = await uploadPhoto(file);
+			const url = URL.createObjectURL(file);
 			setImage(url);
 		}
 	};
@@ -40,11 +40,16 @@ const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave }) => {
 				<Typography variant="h6">{tile.prompt}</Typography>
 				<Box mt={2}>
 					{image ? (
-						<img
-							src={image}
-							alt="Captured"
-							style={{ width: "100%" }}
-						/>
+						<Box>
+							<img
+								src={image}
+								alt="Preview"
+								style={{ width: "100%" }}
+							/>
+							<Button onClick={() => setImage(null)}>
+								Retake Photo
+							</Button>
+						</Box>
 					) : (
 						<Button variant="contained" component="label">
 							Upload or Take a Photo
