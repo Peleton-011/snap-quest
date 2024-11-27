@@ -16,7 +16,7 @@ interface Tile {
 const App: React.FC = () => {
 	const [tiles, setTiles] = useState<Tile[]>([]);
 	const [activeTile, setActiveTile] = useState<Tile | null>(null);
-	const [promptSet, setPromptSet] = useState("default"); // Track the selected prompt set
+	const [promptSet, setPromptSet] = useState("Select..."); // Track the selected prompt set
 	const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
 	// Load prompts dynamically from the server
@@ -53,7 +53,6 @@ const App: React.FC = () => {
 	const downloadPDF = async () => {
 		try {
 			setIsGeneratingPDF(true);
-			const pdfBlob = await generatePDF(tiles);
 			const url = URL.createObjectURL(pdfBlob);
 			const link = document.createElement("a");
 			link.href = url;
@@ -79,7 +78,6 @@ const App: React.FC = () => {
 				<select
 					value={promptSet}
 					onChange={(e) => setPromptSet(e.target.value)}
-                    defaultValue={"select..."}
 				>
 					<option value="books">Books</option>
 					<option value="art">Art</option>
