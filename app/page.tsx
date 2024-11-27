@@ -80,6 +80,7 @@ const App: React.FC = () => {
 					value={promptSet}
 					onChange={(e) => setPromptSet(e.target.value)}
 				>
+                    <option value="Select...">Select...</option>
 					<option value="books">Books</option>
 					<option value="art">Art</option>
 				</select>
