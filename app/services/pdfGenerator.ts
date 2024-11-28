@@ -57,22 +57,19 @@ export async function generatePDF(
 				const aspectRatio = width / height;
 
 				// Set maximum dimensions for the image
-				const maxWidth = PAGE_WIDTH - 2 * MARGIN;
-				const maxHeight = PAGE_HEIGHT - 2 * MARGIN;
-
-				// Calculate scaled dimensions
+				const maxDimension = PAGE_WIDTH; // Max width or height is limited to PAGE_WIDTH
 				let imgWidth = width;
 				let imgHeight = height;
 
-				// Check for width constraint
-				if (imgWidth > maxWidth) {
-					imgWidth = maxWidth;
+				// Check if the width exceeds the max dimension
+				if (imgWidth > maxDimension) {
+					imgWidth = maxDimension;
 					imgHeight = imgWidth / aspectRatio;
 				}
 
-				// Check for height constraint (after width adjustment)
-				if (imgHeight > maxHeight) {
-					imgHeight = maxHeight;
+				// Check if the height exceeds the max dimension
+				if (imgHeight > maxDimension) {
+					imgHeight = maxDimension;
 					imgWidth = imgHeight * aspectRatio;
 				}
 
