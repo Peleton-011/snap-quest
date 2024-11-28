@@ -11,14 +11,18 @@ const PRIMARY_COLOR = rgb(0.341, 0.89, 0.537); // #57e389 (Primary color)
 const BACKGROUND_COLOR = rgb(0.071, 0.071, 0.071); // #121212 (Dark background color)
 const FOREGROUND_COLOR = rgb(1, 1, 1); // #ffffff (Primary text color)
 
-export const generatePDF = async (
+// Store image positions for each row
+let rowImages: { x: number; width: number; imageHeight: number }[] = [];
+
+export async function generatePDF(
 	title: string,
 	tiles: { prompt: string; image: string | null }[]
-) => {
+) {
 	const pdfDoc = await PDFDocument.create();
 	let page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
 	let yPosition = PAGE_HEIGHT - MARGIN;
 
+	// Function to draw the background
 	const drawBackground = (page: any) => {
 		page.drawRectangle({
 			x: 0,
@@ -27,6 +31,63 @@ export const generatePDF = async (
 			height: PAGE_HEIGHT,
 			color: BACKGROUND_COLOR, // Set background color to match dark theme
 		});
+	};
+
+	// Function to draw images and prompts
+	const drawImages = async (page: any) => {
+		let xPosition = MARGIN;
+		let rowHeight = 0; // Start with zero height for the row
+
+		for (let i = 0; i < tiles.length; i++) {
+			const tile = tiles[i];
+			const image = tile.image;
+			const prompt = tile.prompt;
+
+			if (image) {
+				// Fetch and embed image
+				const imageBytes = await fetch(image).then((res) =>
+					res.arrayBuffer()
+				);
+				const imageObj = await pdfDoc.embedJpg(imageBytes);
+				const imageWidth = imageObj.width;
+				const imageHeight = imageObj.height;
+
+				// Check if the image fits in the current row
+				if (xPosition + imageWidth + MARGIN > PAGE_WIDTH) {
+					// Move to the next row if the image doesn't fit
+					xPosition = MARGIN;
+					yPosition -= rowHeight; // Move the yPosition down by the row height
+					rowHeight = 0; // Reset row height for the new row
+				}
+
+				// Draw the image
+				page.drawImage(imageObj, {
+					x: xPosition,
+					y: yPosition - imageHeight / 2,
+					width: imageWidth,
+					height: imageHeight,
+				});
+
+				// Draw the prompt below the image
+				page.drawText(prompt, {
+					x: xPosition,
+					y: yPosition - imageHeight - 15, // Position prompt below the image
+					size: 12,
+					color: FOREGROUND_COLOR, // Use the foreground color for the prompt
+					maxWidth: imageWidth, // Ensure the prompt fits below the image
+					lineHeight: 14, // Adjust prompt spacing
+				});
+
+				// Update the row height to the tallest image in the row
+				rowHeight = Math.max(rowHeight, imageHeight + 30); // 30 for text space
+
+				// Update the xPosition for the next image
+				xPosition += imageWidth + MARGIN;
+			}
+		}
+
+		// After all images, update yPosition to prepare for the next row
+		yPosition -= rowHeight;
 	};
 
 	drawBackground(page);
@@ -41,78 +102,10 @@ export const generatePDF = async (
 
 	yPosition -= 40; // Move down after title
 
-	let imagesInRow = 0; // Track the number of images on the current row
-	const imagesPerRow = 2; // We want 2 images per row, you can adjust this to 3 or 4
+	// Call the drawImages function to draw the images and prompts
+	await drawImages(page);
 
-	for (const tile of tiles) {
-		if (yPosition < MIN_ROW_HEIGHT + MARGIN) {
-			// If there's not enough space for the next image, add a new page
-			page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-			yPosition = PAGE_HEIGHT - MARGIN;
-			drawBackground(page);
-		}
-
-		// Draw the image and its prompt below
-		if (tile.image) {
-			// Fetch the image and embed it in the PDF
-			const imageBytes = await fetch(tile.image).then((res) =>
-				res.arrayBuffer()
-			);
-			const jpgImage = await pdfDoc.embedJpg(imageBytes);
-
-			// Calculate the image size and scale it to fit within the PDF page
-			const { width, height } = jpgImage;
-			const aspectRatio = width / height;
-
-			let imgWidth = Math.min(
-				(PAGE_WIDTH - 2 * MARGIN) / imagesPerRow,
-				width
-			); // Adjust image width for the row
-			let imgHeight = imgWidth / aspectRatio;
-
-			// If the image height exceeds the row height, scale it to fit
-			if (imgHeight > MIN_ROW_HEIGHT) {
-				imgHeight = MIN_ROW_HEIGHT;
-				imgWidth = imgHeight * aspectRatio;
-			}
-
-			// Calculate xPosition for centering images in the row
-			const xPosition = MARGIN + imagesInRow * (imgWidth + 10);
-
-			// Draw the image
-			page.drawImage(jpgImage, {
-				x: xPosition,
-				y: yPosition - imgHeight, // Position the image above the prompt
-				width: imgWidth,
-				height: imgHeight,
-			});
-
-			// Draw the prompt below the image with the foreground color
-			page.drawText(tile.prompt, {
-				x: xPosition,
-				y: yPosition - imgHeight - 15, // Position prompt below the image
-				size: 10,
-				color: FOREGROUND_COLOR, // Use the foreground color for the prompt
-				maxWidth: imgWidth, // Ensure the prompt fits below the image
-				lineHeight: 12, // Adjust prompt spacing
-			});
-
-			// Update yPosition for the next row (move down after image and prompt)
-			yPosition -= imgHeight + 30; // Include space for prompt
-
-			imagesInRow++; // Increase the image count in the current row
-		} else {
-			// If no image, just move down the position
-			yPosition -= MIN_ROW_HEIGHT;
-		}
-
-		// Start a new row after 2 images (you can change this to 3 or 4 if you prefer)
-		if (imagesInRow >= imagesPerRow) {
-			imagesInRow = 0;
-			yPosition -= MIN_ROW_HEIGHT; // Add space between rows
-		}
-	}
-
+	// Finalize the PDF
 	const pdfBytes = await pdfDoc.save();
 	return new Blob([pdfBytes], { type: "application/pdf" });
-};
+}
