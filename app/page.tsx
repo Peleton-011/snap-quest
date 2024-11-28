@@ -6,7 +6,7 @@ import CameraModal from "./components/CameraModal";
 import { fetchPrompts } from "./services/api";
 import { generatePDF } from "./services/pdfGenerator";
 import { downloadImagesAsZip } from "./services/zipImages";
-import "./app.css"; // For dark theme and custom styling
+import "./app.css";
 
 interface Prompt {
 	fullPrompt: string;
@@ -18,7 +18,7 @@ interface Tile {
 	prompt: Prompt;
 	completed: boolean;
 	image: string | null;
-	width: number; // Mosaic dimensions
+	width: number;
 	height: number;
 }
 
@@ -51,25 +51,11 @@ const App: React.FC = () => {
 		loadPrompts();
 	}, [promptSet]);
 
-	// Open Camera Modal when a tile is clicked
-	const handleTileClick = (tile: Tile) => {
-		setActiveTile(tile);
-	};
-
-	// Update a tile's image and resize dynamically for the mosaic
-	const updateTileImage = (
-		id: number,
-		image: string | null,
-		orientation: "landscape" | "portrait"
-	) => {
+	const markTileCompleted = (id: number, image: string | null) => {
 		setTiles((prevTiles) =>
-			prevTiles.map((tile) => {
-				if (tile.id === id) {
-					const newSize = calculateMosaicSize(orientation);
-					return { ...tile, completed: !!image, image, ...newSize };
-				}
-				return tile;
-			})
+			prevTiles.map((tile) =>
+				tile.id === id ? { ...tile, completed: !!image, image } : tile
+			)
 		);
 		setActiveTile(null);
 	};
@@ -128,67 +114,96 @@ const App: React.FC = () => {
 			</Typography>
 
 			{/* Dropdown for prompt set selection */}
-			{
-				<Box
-					mb={2}
+
+			<Box
+				mb={2}
+				style={{
+					display: "flex",
+					gap: "10px",
+					alignItems: "center",
+				}}
+			>
+				<Typography
+					variant="h4"
+					gutterBottom
+					className="prompt-set-title"
+				>
+					{promptSet === "Select..."
+						? "Select a Prompt Set:"
+						: promptSet.slice(0, 1).toUpperCase() +
+						  promptSet.slice(1)}
+				</Typography>
+				<select
+					value={promptSet}
+					onChange={(e) => setPromptSet(e.target.value)}
 					style={{
-						display: "flex",
-						gap: "10px",
-                        alignItems: "center",
+						padding: "0.25rem",
+						marginTop: "0.25rem",
+						marginBottom: "1rem",
 					}}
 				>
-					{promptSet === "Select..." ? (
-						<Typography>Select a Prompt Set:</Typography>
-					) : (
-						<Typography
-							variant="h4"
-							gutterBottom
-							className="prompt-set-title"
-						>
-							{promptSet.slice(0, 1).toUpperCase() +
-								promptSet.slice(1)}
-						</Typography>
-					)}
-					<select
-						value={promptSet}
-						onChange={(e) => setPromptSet(e.target.value)}
-						style={{
-                            padding: "0.25rem",
-                            marginTop: "0.25rem",
-                            marginBottom: "1rem"
-                        }}
-					>
-						<option value="select">Select...</option>
-						<option value="books">Books</option>
-						<option value="art">Art</option>
-					</select>
-				</Box>
-			}
+					<option value="Select...">Select...</option>
+					<option value="books">Books</option>
+					<option value="art">Art</option>
+				</select>
+			</Box>
 
-			{/* Render the mosaic grid */}
-			<Grid container spacing={2} className="mosaic-grid">
+			<Grid
+				container
+				spacing={2}
+				sx={{
+					display: "grid",
+					gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+					gap: "20px",
+				}}
+			>
 				{tiles.map((tile) => (
-					<Grid
-						item
+					<Box
 						key={tile.id}
-						xs={tile.width * 2} // Adjust grid size dynamically
-						sm={tile.width * 2}
-						style={{
-							aspectRatio: `${tile.width} / ${tile.height}`,
-							background: tile.image
-								? `url(${tile.image})`
-								: "none",
-							backgroundSize: "cover",
-							backgroundPosition: "center",
-							color: tile.image ? "white" : "inherit",
+						sx={{
+							display: "flex",
+							flexDirection: "column",
+							alignItems: "center",
 						}}
-						className="mosaic-tile"
-						onClick={() => handleTileClick(tile)}
 					>
-						{tile.image
-							? ""
-							: tile.prompt.shortPrompt || tile.prompt.fullPrompt}
-					</Grid>
+						{/* Button or Image */}
+						<Button
+							fullWidth
+							variant={tile.completed ? "contained" : "outlined"}
+							color={tile.completed ? "success" : "primary"}
+							onClick={() => setActiveTile(tile)}
+							sx={{
+								height: "150px", // Adjust to fit the layout
+								backgroundImage: tile.image
+									? `url(${tile.image})`
+									: "none",
+								backgroundSize: "cover",
+								backgroundPosition: "center",
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "center",
+								color: tile.image ? "white" : "inherit",
+							}}
+						>
+							{!tile.image && tile.prompt.shortPrompt}
+						</Button>
+
+						{/* Prompt below the button/image */}
+						{!tile.completed && (
+							<Typography
+								variant="body2"
+								sx={{
+									marginTop: "10px",
+									textAlign: "center",
+									wordBreak: "break-word",
+									maxWidth: "100%",
+									color: "#6c757d",
+								}}
+							>
+								{tile.prompt.shortPrompt}
+							</Typography>
+						)}
+					</Box>
 				))}
 			</Grid>
 
@@ -198,7 +213,7 @@ const App: React.FC = () => {
 					tile={activeTile}
 					onClose={() => setActiveTile(null)}
 					onSave={(id, image, orientation) =>
-						updateTileImage(id, image, orientation)
+						markTileCompleted(id, image)
 					}
 				/>
 			)}

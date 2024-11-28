@@ -26,23 +26,34 @@ body {
 
 /* Mosaic Grid */
 .mosaic-grid {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px; /* Space between tiles and prompts */
 }
 
 .mosaic-tile {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	background-color: #333333;
-	border: 1px solid #444444;
-	border-radius: 10px;
-	cursor: pointer;
-	text-align: center;
-	overflow: hidden;
-	color: #e0e0e0;
+    position: relative;
+    background-color: #333;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    cursor: pointer;
+    width: 100%;
+    aspect-ratio: 1; /* Maintain square aspect ratio */
 }
+
+.mosaic-tile.completed {
+    border-color: #4caf50;
+    cursor: default;
+}
+
+.prompt-label {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: -10px; /* Space between tile and prompt */
+    word-break: break-word; /* Handle long text */
+}
+
 
 .mosaic-tile:hover {
 	border-color: #777777;
