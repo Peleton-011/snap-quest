@@ -57,7 +57,7 @@ export async function generatePDF(
 				const aspectRatio = width / height;
 
 				// Set maximum dimensions for the image
-				const maxDimension = PAGE_WIDTH - 2 * MARGIN; // Max width or height is limited to PAGE_WIDTH
+				const maxDimension = 200; // Max width or height is limited 
 				let imgWidth = width;
 				let imgHeight = height;
 
@@ -96,16 +96,16 @@ export async function generatePDF(
 
 				// Draw the image
 				page.drawImage(imageObj, {
-					x: 300, //xPosition,
-					y: 400 - imgHeight, //yPosition - imgHeight,
+					x: xPosition,
+					y: yPosition - imgHeight,
 					width: imgWidth,
 					height: imgHeight,
 				});
 
 				// Draw the prompt below the image
 				page.drawText(prompt, {
-					x: 300, //xPosition,
-					y: 400 - imgHeight - 15, //yPosition - imgHeight - 15, // Position prompt below the image
+					x: xPosition,
+					y: yPosition - imgHeight - 15, // Position prompt below the image
 					size: 12,
 					color: FOREGROUND_COLOR, // Use the foreground color for the prompt
 					maxWidth: imgWidth, // Ensure the prompt fits below the image
