@@ -52,16 +52,23 @@ export async function generatePDF(
 				const { width, height } = imageObj;
 				const aspectRatio = width / height;
 
-				// Set the maximum width for the image
+				// Set maximum dimensions for the image
 				const maxWidth = PAGE_WIDTH - 2 * MARGIN;
+				const maxHeight = PAGE_HEIGHT - 2 * MARGIN;
 
-				// Calculate the new image width and height, maintaining aspect ratio
-				let imgWidth = Math.min(width, maxWidth);
-				let imgHeight = imgWidth / aspectRatio;
+				// Calculate scaled dimensions
+				let imgWidth = width;
+				let imgHeight = height;
 
-				// If the image height exceeds the page height, scale it down
-				if (imgHeight > PAGE_HEIGHT - 2 * MARGIN) {
-					imgHeight = PAGE_HEIGHT - 2 * MARGIN;
+				// Check for width constraint
+				if (imgWidth > maxWidth) {
+					imgWidth = maxWidth;
+					imgHeight = imgWidth / aspectRatio;
+				}
+
+				// Check for height constraint (after width adjustment)
+				if (imgHeight > maxHeight) {
+					imgHeight = maxHeight;
 					imgWidth = imgHeight * aspectRatio;
 				}
 
@@ -76,7 +83,7 @@ export async function generatePDF(
 				// Draw the image
 				page.drawImage(imageObj, {
 					x: xPosition,
-					y: yPosition - imgHeight / 2,
+					y: yPosition - imgHeight, // Adjust Y position to place image within row
 					width: imgWidth,
 					height: imgHeight,
 				});
