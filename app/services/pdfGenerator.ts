@@ -96,16 +96,16 @@ export async function generatePDF(
 
 				// Draw the image
 				page.drawImage(imageObj, {
-					x: xPosition,
-					y: yPosition - imgHeight,
+					x: 300, //xPosition,
+					y: 400 - imgHeight, //yPosition - imgHeight,
 					width: imgWidth,
 					height: imgHeight,
 				});
 
 				// Draw the prompt below the image
 				page.drawText(prompt, {
-					x: xPosition,
-					y: yPosition - imgHeight - 15, // Position prompt below the image
+					x: 300, //xPosition,
+					y: 400 - imgHeight - 15, //yPosition - imgHeight - 15, // Position prompt below the image
 					size: 12,
 					color: FOREGROUND_COLOR, // Use the foreground color for the prompt
 					maxWidth: imgWidth, // Ensure the prompt fits below the image
