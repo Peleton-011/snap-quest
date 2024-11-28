@@ -67,7 +67,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave }) => {
 
 	return (
 		<Dialog open onClose={onClose}>
-			<DialogContent>
+			<DialogContent className="dark-theme">
 				<Typography variant="h6">{tile.prompt.fullPrompt}</Typography>
 				<Box mt={2}>
 					{image ? (
@@ -104,7 +104,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave }) => {
 					)}
 				</Box>
 			</DialogContent>
-			<DialogActions>
+			<DialogActions className="dark-theme">
 				<Button onClick={onClose}>Cancel</Button>
 				<Button onClick={handleSave} disabled={!image}>
 					Save

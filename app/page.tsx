@@ -7,6 +7,8 @@ import { fetchPrompts } from "./services/api";
 import { generatePDF } from "./services/pdfGenerator";
 import { downloadImagesAsZip } from "./services/zipImages";
 import "./app.css";
+import { ThemeProvider } from "@mui/material/styles";
+import theme from "./theme";
 
 interface Prompt {
 	fullPrompt: string;
@@ -108,136 +110,143 @@ const App: React.FC = () => {
 	};
 
 	return (
-		<Box className="dark-theme" p={4}>
-			<Typography variant="h3" gutterBottom className="title">
-				SnapQuest
-			</Typography>
-
-			{/* Dropdown for prompt set selection */}
-
-			<Box
-				mb={2}
-				style={{
-					display: "flex",
-					gap: "10px",
-					alignItems: "center",
-				}}
-			>
-				<Typography
-					variant="h4"
-					gutterBottom
-					className="prompt-set-title"
-				>
-					{promptSet === "Select..."
-						? "Select a Prompt Set:"
-						: promptSet.slice(0, 1).toUpperCase() +
-						  promptSet.slice(1)}
+		<ThemeProvider theme={theme}>
+			<Box className="dark-theme" p={4}>
+				<Typography variant="h3" gutterBottom className="title">
+					SnapQuest
 				</Typography>
-				<select
-					value={promptSet}
-					onChange={(e) => setPromptSet(e.target.value)}
+
+				{/* Dropdown for prompt set selection */}
+
+				<Box
+					mb={2}
 					style={{
-						padding: "0.25rem",
-						marginTop: "0.25rem",
-						marginBottom: "1rem",
+						display: "flex",
+						gap: "10px",
+						alignItems: "center",
 					}}
 				>
-					<option value="Select...">Select...</option>
-					<option value="books">Books</option>
-					<option value="art">Art</option>
-				</select>
-			</Box>
-
-			<Grid
-				container
-				spacing={2}
-				sx={{
-					display: "grid",
-					gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-					gap: "20px",
-				}}
-			>
-				{tiles.map((tile) => (
-					<Box
-						key={tile.id}
-						sx={{
-							display: "flex",
-							flexDirection: "column",
-							alignItems: "center",
+					<Typography
+						variant="h4"
+						gutterBottom
+						className="prompt-set-title"
+					>
+						{promptSet === "Select..."
+							? "Select a Prompt Set:"
+							: promptSet.slice(0, 1).toUpperCase() +
+							  promptSet.slice(1)}
+					</Typography>
+					<select
+						value={promptSet}
+						onChange={(e) => setPromptSet(e.target.value)}
+						style={{
+							padding: "0.25rem",
+							marginTop: "0.25rem",
+							marginBottom: "1rem",
 						}}
 					>
-						{/* Button or Image */}
-						<Button
-							fullWidth
-							variant={tile.completed ? "contained" : "outlined"}
-							color={tile.completed ? "success" : "primary"}
-							onClick={() => setActiveTile(tile)}
+						<option value="Select...">Select...</option>
+						<option value="books">Books</option>
+						<option value="art">Art</option>
+					</select>
+				</Box>
+
+				<Grid
+					container
+					spacing={2}
+					sx={{
+						display: "grid",
+						gridTemplateColumns:
+							"repeat(auto-fit, minmax(150px, 1fr))",
+						gap: "20px",
+					}}
+				>
+					{tiles.map((tile) => (
+						<Box
+							key={tile.id}
 							sx={{
-								height: "150px", // Adjust to fit the layout
-								backgroundImage: tile.image
-									? `url(${tile.image})`
-									: "none",
-								backgroundSize: "cover",
-								backgroundPosition: "center",
 								display: "flex",
+								flexDirection: "column",
 								alignItems: "center",
-								justifyContent: "center",
-								color: tile.image ? "white" : "inherit",
 							}}
 						>
-							{!tile.image && tile.prompt.shortPrompt}
-						</Button>
-
-						{/* Prompt below the button/image */}
-						{tile.completed && (
-							<Typography
-								variant="body2"
+							{/* Button or Image */}
+							<Button
+								fullWidth
+								variant={
+									tile.completed ? "contained" : "outlined"
+								}
+								color={tile.completed ? "success" : "primary"}
+								onClick={() => setActiveTile(tile)}
 								sx={{
-									marginTop: "10px",
-									textAlign: "center",
-									wordBreak: "break-word",
-									maxWidth: "100%",
-									color: "#6c757d",
+									height: "150px", // Adjust to fit the layout
+									backgroundImage: tile.image
+										? `url(${tile.image})`
+										: "none",
+									backgroundSize: "cover",
+									backgroundPosition: "center",
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "center",
+									color: tile.image ? "white" : "inherit",
 								}}
 							>
-								{tile.prompt.shortPrompt}
-							</Typography>
-						)}
-					</Box>
-				))}
-			</Grid>
+								{!tile.image && tile.prompt.shortPrompt}
+							</Button>
 
-			{/* Modal for capturing/uploading images */}
-			{activeTile && (
-				<CameraModal
-					tile={activeTile}
-					onClose={() => setActiveTile(null)}
-					onSave={(id, image, orientation) =>
-						markTileCompleted(id, image)
-					}
-				/>
-			)}
+							{/* Prompt below the button/image */}
+							{tile.completed && (
+								<Typography
+									variant="body2"
+									sx={{
+										marginTop: "10px",
+										textAlign: "center",
+										wordBreak: "break-word",
+										maxWidth: "100%",
+										color: "#6c757d",
+									}}
+								>
+									{tile.prompt.shortPrompt}
+								</Typography>
+							)}
+						</Box>
+					))}
+				</Grid>
 
-			{/* Fixed download buttons */}
-			<Box className="download-buttons">
-				<Button
-					variant="contained"
-					color="primary"
-					onClick={downloadPDF}
-					disabled={isGeneratingPDF}
-				>
-					{isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
-				</Button>
-				<Button
-					variant="contained"
-					color="secondary"
-					onClick={downloadImages}
-					disabled={isDownloadingImages}
-				>
-					{isDownloadingImages ? "Downloading..." : "Download Images"}
-				</Button>
+				{/* Modal for capturing/uploading images */}
+				{activeTile && (
+					<CameraModal
+						tile={activeTile}
+						onClose={() => setActiveTile(null)}
+						onSave={(id, image, orientation) =>
+							markTileCompleted(id, image)
+						}
+					/>
+				)}
+
+				{/* Fixed download buttons */}
+				<Box className="download-buttons">
+					<Button
+						variant="contained"
+						color="primary"
+						onClick={downloadPDF}
+						disabled={isGeneratingPDF}
+					>
+						{isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
+					</Button>
+					<Button
+						variant="contained"
+						color="secondary"
+						onClick={downloadImages}
+						disabled={isDownloadingImages}
+					>
+						{isDownloadingImages
+							? "Downloading..."
+							: "Download Images"}
+					</Button>
+				</Box>
 			</Box>
-		</Box>
+		</ThemeProvider>
 	);
 };
 
