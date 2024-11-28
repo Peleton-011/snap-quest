@@ -67,10 +67,10 @@ const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave }) => {
 
 	return (
 		<Dialog open onClose={onClose}>
-			<DialogContent className="dark-theme">
+			<DialogContent className="modal">
 				<Typography variant="h6">{tile.prompt.fullPrompt}</Typography>
 				<Box mt={2}>
-					{image ? (
+					{image && (
 						<Box>
 							<img
 								src={image}
@@ -91,20 +91,21 @@ const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave }) => {
 								</Button>
 							</Box>
 						</Box>
-					) : (
-						<Button variant="contained" component="label">
-							Upload or Take a Photo
-							<input
-								type="file"
-								accept="image/*"
-								hidden
-								onChange={handleCapture}
-							/>
-						</Button>
 					)}
 				</Box>
 			</DialogContent>
-			<DialogActions className="dark-theme">
+			<DialogActions className="modal">
+				{!image && (
+					<Button variant="contained" component="label">
+						Upload or Take a Photo
+						<input
+							type="file"
+							accept="image/*"
+							hidden
+							onChange={handleCapture}
+						/>
+					</Button>
+				)}
 				<Button onClick={onClose}>Cancel</Button>
 				<Button onClick={handleSave} disabled={!image}>
 					Save

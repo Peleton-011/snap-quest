@@ -67,3 +67,7 @@ body {
 	display: flex;
 	gap: 10px;
 }
+
+.modal {
+    padding: 1rem;
+}
