@@ -8,10 +8,28 @@ import {
 	Typography,
 } from "@mui/material";
 
+interface Prompt {
+	fullPrompt: string;
+	shortPrompt: string;
+}
+
+interface Tile {
+	id: number;
+	prompt: Prompt;
+	completed: boolean;
+	image: string | null;
+	width: number;
+	height: number;
+}
+
 interface CameraModalProps {
-	tile: { id: number; prompt: string; image: string | null };
+	tile: Tile;
 	onClose: () => void;
-	onSave: (id: number, image: string | null) => void;
+	onSave: (
+		id: number,
+		image: string | null,
+		orientation: "landscape" | "portrait"
+	) => void;
 }
 
 const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave }) => {
@@ -23,7 +41,16 @@ const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave }) => {
 		const file = event.target.files?.[0];
 		if (file) {
 			const url = URL.createObjectURL(file);
-			setImage(url);
+
+			// Determine orientation based on image dimensions
+			const img = new Image();
+			img.src = url;
+			img.onload = () => {
+				const orientation =
+					img.width > img.height ? "landscape" : "portrait";
+				setImage(url);
+				onSave(tile.id, url, orientation);
+			};
 		}
 	};
 
@@ -31,23 +58,17 @@ const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave }) => {
 		setImage(null);
 	};
 
-	const handleDownload = () => {
-		if (image) {
-			const link = document.createElement("a");
-			link.href = image;
-			link.download = `tile-${tile.id}.jpg`;
-			link.click();
-		}
-	};
-
 	const handleSave = () => {
-		onSave(tile.id, image);
+		if (image) {
+			const orientation = "landscape"; // Assume default, as orientation is calculated on capture
+			onSave(tile.id, image, orientation);
+		}
 	};
 
 	return (
 		<Dialog open onClose={onClose}>
 			<DialogContent>
-				<Typography variant="h6">{tile.prompt}</Typography>
+				<Typography variant="h6">{tile.prompt.fullPrompt}</Typography>
 				<Box mt={2}>
 					{image ? (
 						<Box>
@@ -67,13 +88,6 @@ const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave }) => {
 									onClick={handleDelete}
 								>
 									Delete Image
-								</Button>
-								<Button
-									variant="outlined"
-									color="primary"
-									onClick={handleDownload}
-								>
-									Download Image
 								</Button>
 							</Box>
 						</Box>

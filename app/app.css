@@ -1,0 +1,60 @@
+/* Global Dark Theme */
+body {
+	background-color: #121212;
+	color: #e0e0e0;
+	font-family: Arial, sans-serif;
+	margin: 0;
+	padding: 0;
+}
+
+.dark-theme {
+	background-color: #121212;
+	color: #e0e0e0;
+}
+
+.title {
+	text-align: center;
+	font-weight: bold;
+	color: #ffffff;
+}
+
+.prompt-set-title {
+	text-align: left;
+	font-weight: bold;
+	color: #ffffff;
+}
+
+/* Mosaic Grid */
+.mosaic-grid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.mosaic-tile {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: #333333;
+	border: 1px solid #444444;
+	border-radius: 10px;
+	cursor: pointer;
+	text-align: center;
+	overflow: hidden;
+	color: #e0e0e0;
+}
+
+.mosaic-tile:hover {
+	border-color: #777777;
+	background-color: #444444;
+}
+
+/* Fixed Download Buttons */
+.download-buttons {
+	position: fixed;
+	bottom: 20px;
+	left: 50%;
+	transform: translateX(-50%);
+	display: flex;
+	gap: 10px;
+}
