@@ -49,11 +49,24 @@ export async function generatePDF(
 					res.arrayBuffer()
 				);
 				const imageObj = await pdfDoc.embedJpg(imageBytes);
-				const imageWidth = imageObj.width;
-				const imageHeight = imageObj.height;
+				const { width, height } = imageObj;
+				const aspectRatio = width / height;
+
+				// Set the maximum width for the image
+				const maxWidth = PAGE_WIDTH - 2 * MARGIN;
+
+				// Calculate the new image width and height, maintaining aspect ratio
+				let imgWidth = Math.min(width, maxWidth);
+				let imgHeight = imgWidth / aspectRatio;
+
+				// If the image height exceeds the page height, scale it down
+				if (imgHeight > PAGE_HEIGHT - 2 * MARGIN) {
+					imgHeight = PAGE_HEIGHT - 2 * MARGIN;
+					imgWidth = imgHeight * aspectRatio;
+				}
 
 				// Check if the image fits in the current row
-				if (xPosition + imageWidth + MARGIN > PAGE_WIDTH) {
+				if (xPosition + imgWidth + MARGIN > PAGE_WIDTH) {
 					// Move to the next row if the image doesn't fit
 					xPosition = MARGIN;
 					yPosition -= rowHeight; // Move the yPosition down by the row height
@@ -63,26 +76,26 @@ export async function generatePDF(
 				// Draw the image
 				page.drawImage(imageObj, {
 					x: xPosition,
-					y: yPosition - imageHeight / 2,
-					width: imageWidth,
-					height: imageHeight,
+					y: yPosition - imgHeight / 2,
+					width: imgWidth,
+					height: imgHeight,
 				});
 
 				// Draw the prompt below the image
 				page.drawText(prompt, {
 					x: xPosition,
-					y: yPosition - imageHeight - 15, // Position prompt below the image
+					y: yPosition - imgHeight - 15, // Position prompt below the image
 					size: 12,
 					color: FOREGROUND_COLOR, // Use the foreground color for the prompt
-					maxWidth: imageWidth, // Ensure the prompt fits below the image
+					maxWidth: imgWidth, // Ensure the prompt fits below the image
 					lineHeight: 14, // Adjust prompt spacing
 				});
 
 				// Update the row height to the tallest image in the row
-				rowHeight = Math.max(rowHeight, imageHeight + 30); // 30 for text space
+				rowHeight = Math.max(rowHeight, imgHeight + 30); // 30 for text space
 
 				// Update the xPosition for the next image
-				xPosition += imageWidth + MARGIN;
+				xPosition += imgWidth + MARGIN;
 			}
 		}
 
