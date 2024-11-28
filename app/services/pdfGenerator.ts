@@ -57,7 +57,7 @@ export async function generatePDF(
 				const aspectRatio = width / height;
 
 				// Set maximum dimensions for the image
-				const maxDimension = 200; // Max width or height is limited 
+				const maxDimension = 250; // Max width or height is limited 
 				let imgWidth = width;
 				let imgHeight = height;
 
