@@ -189,7 +189,7 @@ const App: React.FC = () => {
 						</Button>
 
 						{/* Prompt below the button/image */}
-						{!tile.completed && (
+						{tile.completed && (
 							<Typography
 								variant="body2"
 								sx={{
