@@ -1,6 +1,20 @@
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 
+interface Prompt {
+	fullPrompt: string;
+	shortPrompt: string;
+}
+
+interface Tile {
+	id: number;
+	prompt: Prompt;
+	completed: boolean;
+	image: string | null;
+	width: number; // Mosaic dimensions
+	height: number;
+}
+
 export const downloadImagesAsZip = async (tiles: Tile[]) => {
 	const zip = new JSZip();
 
