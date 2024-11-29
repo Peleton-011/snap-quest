@@ -148,6 +148,7 @@ const App: React.FC = () => {
 						<option value="Select...">Select...</option>
 						<option value="books">Books</option>
 						<option value="art">Art</option>
+						<option value="boleishons">Boleishons</option>
 					</select>
 				</Box>
 
