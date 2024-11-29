@@ -1,4 +1,4 @@
-import { PDFDocument, rgb } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
 // Define constants for the PDF page size, margins, and minimum row height
 const PAGE_WIDTH = 600;
@@ -18,6 +18,7 @@ export async function generatePDF(
 	const pdfDoc = await PDFDocument.create();
 	let page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
 	let yPosition = PAGE_HEIGHT - MARGIN;
+	const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
 	// Function to draw the background on a page
 	const drawBackground = (page: any) => {
@@ -57,7 +58,7 @@ export async function generatePDF(
 				const aspectRatio = width / height;
 
 				// Set maximum dimensions for the image
-				const maxDimension = 250; // Max width or height is limited 
+				const maxDimension = 250; // Max width or height is limited
 				let imgWidth = width;
 				let imgHeight = height;
 
@@ -133,6 +134,7 @@ export async function generatePDF(
 		y: yPosition,
 		size: 24,
 		color: PRIMARY_COLOR, // Use the primary theme color for title
+		font: boldFont,
 	});
 
 	yPosition -= 40; // Move down after title

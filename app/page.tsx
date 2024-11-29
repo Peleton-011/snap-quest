@@ -111,8 +111,8 @@ const App: React.FC = () => {
 
 	return (
 		<ThemeProvider theme={theme}>
-			<Box className="dark-theme" p={4}>
-				<Typography variant="h3" gutterBottom className="title">
+			<Box p={4}>
+				<Typography variant="h3" gutterBottom className=" title">
 					SnapQuest
 				</Typography>
 
