@@ -17,8 +17,8 @@ export async function generatePDF(
 ) {
 	const pdfDoc = await PDFDocument.create();
 	let page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-	let yPosition = PAGE_HEIGHT - MARGIN;
 	const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+	let yPosition = PAGE_HEIGHT - MARGIN;
 
 	// Function to draw the background on a page
 	const drawBackground = (page: any) => {
@@ -43,8 +43,7 @@ export async function generatePDF(
 		let xPosition = MARGIN;
 		let rowHeight = 0;
 
-		for (let i = 0; i < tiles.length; i++) {
-			const tile = tiles[i];
+		for (let tile of tiles) {
 			const image = tile.image;
 			const prompt = tile.prompt;
 
@@ -57,39 +56,38 @@ export async function generatePDF(
 				const { width, height } = imageObj;
 				const aspectRatio = width / height;
 
-				// Set maximum dimensions for the image
-				const maxDimension = 250; // Max width or height is limited
+				// Limit the image size to fit within max dimensions
+				const maxDimension = 250;
 				let imgWidth = width;
 				let imgHeight = height;
 
-				// Check if the width exceeds the max dimension
 				if (imgWidth > maxDimension) {
 					imgWidth = maxDimension;
 					imgHeight = imgWidth / aspectRatio;
 				}
 
-				// Check if the height exceeds the max dimension
 				if (imgHeight > maxDimension) {
 					imgHeight = maxDimension;
 					imgWidth = imgHeight * aspectRatio;
 				}
 
-				// If the row's yPosition doesn't have enough space for the current image, add a new page
-				if (yPosition - imgHeight - 30 < MARGIN) {
+				const totalHeight = imgHeight + 30; // Image height + space for prompt
+
+				// Check if there's space for the image and prompt
+				if (yPosition - totalHeight < MARGIN) {
 					addNewPage();
-					xPosition = MARGIN; // Reset xPosition for the new page
-					rowHeight = 0; // Reset row height for the new page
+					xPosition = MARGIN;
+					rowHeight = 0;
 				}
 
-				// Check if the image fits in the current row
+				// Check if the image fits horizontally
 				if (xPosition + imgWidth + MARGIN > PAGE_WIDTH) {
-					// Move to the next row if the image doesn't fit
 					xPosition = MARGIN;
-					yPosition -= rowHeight; // Move the yPosition down by the row height
+					yPosition -= rowHeight; // Move yPosition down by the row height
 					rowHeight = 0;
 
-					// If there's no space for a new row, add a new page
-					if (yPosition - imgHeight - 30 < MARGIN) {
+					// Check again if there's enough vertical space
+					if (yPosition - totalHeight < MARGIN) {
 						addNewPage();
 						xPosition = MARGIN;
 					}
@@ -106,40 +104,37 @@ export async function generatePDF(
 				// Draw the prompt below the image
 				page.drawText(prompt, {
 					x: xPosition,
-					y: yPosition - imgHeight - 15, // Position prompt below the image
+					y: yPosition - imgHeight - 15,
 					size: 12,
-					color: FOREGROUND_COLOR, // Use the foreground color for the prompt
-					maxWidth: imgWidth, // Ensure the prompt fits below the image
-					lineHeight: 14, // Adjust prompt spacing
+					color: FOREGROUND_COLOR,
+					maxWidth: imgWidth,
+					lineHeight: 14,
 				});
 
-				// Update the row height to the tallest image in the row
-				rowHeight = Math.max(rowHeight, imgHeight + 30); // 30 for text space
-
-				// Update the xPosition for the next image
+				// Update rowHeight and xPosition
+				rowHeight = Math.max(rowHeight, totalHeight);
 				xPosition += imgWidth + MARGIN;
 			}
 		}
 
-		// After all images, update yPosition to prepare for the next row
-		yPosition -= rowHeight;
+		yPosition -= rowHeight; // Final adjustment after all rows
 	};
 
 	// Draw the background for the first page
 	drawBackground(page);
 
-	// Add title to the first page
+	// Add the title to the first page
 	page.drawText(title, {
 		x: MARGIN,
 		y: yPosition,
 		size: 24,
-		color: PRIMARY_COLOR, // Use the primary theme color for title
+		color: PRIMARY_COLOR,
 		font: boldFont,
 	});
 
-	yPosition -= 40; // Move down after title
+	yPosition -= 40; // Space after the title
 
-	// Draw all images and prompts
+	// Draw images and prompts
 	await drawImages();
 
 	// Finalize the PDF
