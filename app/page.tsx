@@ -183,7 +183,6 @@ const App: React.FC = () => {
 							gap: "20px",
 						}}
 					>
-						{console.log(JSON.stringify(tiles, null, 2))}
 						{tiles.map((tile) => (
 							<Box
 								key={tile.id}
