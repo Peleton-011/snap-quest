@@ -8,19 +8,7 @@ import {
 	Typography,
 } from "@mui/material";
 
-interface Prompt {
-	fullPrompt: string;
-	shortPrompt: string;
-}
-
-interface Tile {
-	id: number;
-	prompt: Prompt;
-	completed: boolean;
-	image: string | null;
-	width: number;
-	height: number;
-}
+import {Prompt, Tile } from "@/app/types/types"
 
 interface CameraModalProps {
 	tile: Tile;
@@ -30,9 +18,10 @@ interface CameraModalProps {
 		image: string | null,
 		orientation: "landscape" | "portrait"
 	) => void;
+    language: string;
 }
 
-const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave }) => {
+const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave, language }) => {
 	const [image, setImage] = useState<string | null>(tile.image);
 
 	const handleCapture = async (
@@ -68,7 +57,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave }) => {
 	return (
 		<Dialog open onClose={onClose}>
 			<DialogContent className="modal">
-				<Typography variant="h6">{tile.prompt.fullPrompt}</Typography>
+				<Typography variant="h6">{tile.prompt.fullPrompt[language]}</Typography>
 				<Box mt={2}>
 					{image && (
 						<Box>
