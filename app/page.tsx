@@ -9,33 +9,45 @@ import { downloadImagesAsZip } from "./services/zipImages";
 import "./app.css";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "./theme";
+import { PromptSet, Prompt, Tile } from "./types/types";
 
-interface Prompt {
-	fullPrompt: string;
-	shortPrompt: string;
-}
-
-interface Tile {
-	id: number;
-	prompt: Prompt;
-	completed: boolean;
-	image: string | null;
-	width: number;
-	height: number;
-}
+const defaultPromptSet: PromptSet = {
+	name: "Select...",
+	prompts: [],
+};
 
 const App: React.FC = () => {
 	const [tiles, setTiles] = useState<Tile[]>([]);
 	const [activeTile, setActiveTile] = useState<Tile | null>(null);
-	const [promptSet, setPromptSet] = useState("Select..."); // Track the selected prompt set
+	const [promptSet, setPromptSet] = useState<PromptSet>(defaultPromptSet); // Track the selected prompt set
 	const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 	const [isDownloadingImages, setIsDownloadingImages] = useState(false);
+	const [language, setLanguage] = useState("en");
+	const [promptSets, setPromptSets] = useState<PromptSet[]>([
+		defaultPromptSet,
+	]);
+
+	// Fetch prompt sets from the server
+	useEffect(() => {
+		const fetchPromptSets = async () => {
+			try {
+				const response = await fetch("/api/promptSets");
+				const data = await response.json();
+				setPromptSets([defaultPromptSet, ...data]);
+			} catch (error) {
+				console.error("Failed to fetch prompt sets:", error);
+			}
+		};
+		fetchPromptSets();
+	}, []);
 
 	// Load prompts dynamically from the server
 	useEffect(() => {
 		const loadPrompts = async () => {
 			try {
-				const prompts = await fetchPrompts(promptSet);
+				if (!promptSet._id) return;
+				const prompts = await fetchPrompts(promptSet._id);
+				console.log(prompts);
 				setTiles(
 					prompts.map((prompt: Prompt, idx: number) => ({
 						id: idx,
@@ -78,7 +90,7 @@ const App: React.FC = () => {
 			const pdfBlob = await generatePDF(
 				"SnapQuest: " + promptSet,
 				tiles.map((tile) => ({
-					prompt: tile.prompt.fullPrompt,
+					prompt: tile.prompt.fullPrompt[language],
 					image: tile.image,
 					width: tile.width,
 					height: tile.height,
@@ -131,88 +143,105 @@ const App: React.FC = () => {
 						gutterBottom
 						className="prompt-set-title"
 					>
-						{promptSet === "Select..."
+						{promptSet.name === "Select..."
 							? "Select a Prompt Set:"
-							: promptSet.slice(0, 1).toUpperCase() +
-							  promptSet.slice(1)}
+							: promptSet.name.slice(0, 1).toUpperCase() +
+							  promptSet.name.slice(1)}
 					</Typography>
 					<select
-						value={promptSet}
-						onChange={(e) => setPromptSet(e.target.value)}
+						value={promptSet.name}
+						onChange={(e) =>
+							setPromptSet(
+								promptSets.find(
+									(promptSet) =>
+										promptSet._id === e.target.value
+								) || promptSets[0]
+							)
+						}
 						style={{
 							padding: "0.25rem",
 							marginTop: "0.25rem",
 							marginBottom: "1rem",
 						}}
 					>
-						<option value="Select...">Select...</option>
-						<option value="books">Books</option>
-						<option value="art">Art</option>
-						<option value="boleishons">Boleishons</option>
+						{promptSets.map((promptSet) => (
+							<option value={promptSet._id} key={promptSet._id}>
+								{promptSet.name}
+							</option>
+						))}
 					</select>
 				</Box>
 
-				<Grid
-					container
-					spacing={2}
-					sx={{
-						display: "grid",
-						gridTemplateColumns:
-							"repeat(auto-fit, minmax(150px, 1fr))",
-						gap: "20px",
-					}}
-				>
-					{tiles.map((tile) => (
-						<Box
-							key={tile.id}
-							sx={{
-								display: "flex",
-								flexDirection: "column",
-								alignItems: "center",
-							}}
-						>
-							{/* Button or Image */}
-							<Button
-								fullWidth
-								variant={
-									tile.completed ? "contained" : "outlined"
-								}
-								color={tile.completed ? "success" : "primary"}
-								onClick={() => setActiveTile(tile)}
+				{tiles.length > 0 && (
+					<Grid
+						container
+						spacing={2}
+						sx={{
+							display: "grid",
+							gridTemplateColumns:
+								"repeat(auto-fit, minmax(150px, 1fr))",
+							gap: "20px",
+						}}
+					>
+						{console.log(JSON.stringify(tiles, null, 2))}
+						{tiles.map((tile) => (
+							<Box
+								key={tile.id}
 								sx={{
-									height: "150px", // Adjust to fit the layout
-									backgroundImage: tile.image
-										? `url(${tile.image})`
-										: "none",
-									backgroundSize: "cover",
-									backgroundPosition: "center",
 									display: "flex",
+									flexDirection: "column",
 									alignItems: "center",
-									justifyContent: "center",
-									color: tile.image ? "white" : "inherit",
 								}}
 							>
-								{!tile.image && tile.prompt.shortPrompt}
-							</Button>
-
-							{/* Prompt below the button/image */}
-							{tile.completed && (
-								<Typography
-									variant="body2"
+								{/* Button or Image */}
+								<Button
+									fullWidth
+									variant={
+										tile.completed
+											? "contained"
+											: "outlined"
+									}
+									color={
+										tile.completed ? "success" : "primary"
+									}
+									onClick={() => setActiveTile(tile)}
 									sx={{
-										marginTop: "10px",
-										textAlign: "center",
-										wordBreak: "break-word",
-										maxWidth: "100%",
-										color: "#6c757d",
+										height: "150px", // Adjust to fit the layout
+										backgroundImage: tile.image
+											? `url(${tile.image})`
+											: "none",
+										backgroundSize: "cover",
+										backgroundPosition: "center",
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "center",
+										color: tile.image ? "white" : "inherit",
 									}}
 								>
-									{tile.prompt.shortPrompt}
-								</Typography>
-							)}
-						</Box>
-					))}
-				</Grid>
+									{!tile.image
+										? tile.prompt.shortPrompt[language]
+										: null}
+								</Button>
+
+								{/* Prompt below the button/image */}
+								{tile.completed && (
+									<Typography
+										variant="body2"
+										sx={{
+											marginTop: "10px",
+											textAlign: "center",
+											wordBreak: "break-word",
+											maxWidth: "100%",
+											color: "#6c757d",
+										}}
+									>
+										{tile.prompt.shortPrompt[language]}
+									</Typography>
+								)}
+							</Box>
+						))}
+					</Grid>
+				)}
 
 				{/* Modal for capturing/uploading images */}
 				{activeTile && (
@@ -222,6 +251,7 @@ const App: React.FC = () => {
 						onSave={(id, image, orientation) =>
 							markTileCompleted(id, image)
 						}
+						language={language}
 					/>
 				)}
 
