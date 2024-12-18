@@ -1,23 +1,22 @@
 import apiClient from "./apiClient";
+import { Prompt, PromptSet } from "@/app/types/types";
 
-interface Prompt {
-    fullPrompt: string;
-    shortPrompt: string;
-  }
-
-export const fetchPrompts = async (set: string): Promise<Prompt[]> => {
-    const response = await apiClient.get(`/prompts`, { params: { set } });
-    return response.data;
-  };
-  
+export const fetchPromptSets = async (): Promise<PromptSet[]> => {
+	const response = await apiClient.get(`/promptSets`);
+	return response.data;
+};
+export const fetchPrompts = async (id: string): Promise<Prompt[]> => {
+	const response = await apiClient.get(`/promptSets/${id}`);
+	return response.data.prompts;
+};
 
 export const uploadPhoto = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append("photo", file);
+	const formData = new FormData();
+	formData.append("photo", file);
 
-    const response = await apiClient.post(`/uploads`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-    });
+	const response = await apiClient.post(`/uploads`, formData, {
+		headers: { "Content-Type": "multipart/form-data" },
+	});
 
-    return response.data.url; // Return uploaded image URL
+	return response.data.url; // Return uploaded image URL
 };
