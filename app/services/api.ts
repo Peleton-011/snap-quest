@@ -5,9 +5,9 @@ export const fetchPromptSets = async (): Promise<PromptSet[]> => {
 	const response = await apiClient.get(`/promptSets`);
 	return response.data;
 };
-export const fetchPrompts = async (id: string): Promise<Prompt[]> => {
+export const fetchPrompts = async (id: string): Promise<{prompts: Prompt[]}> => {
 	const response = await apiClient.get(`/promptSets/${id}`);
-	return response.data.prompts;
+	return response.data;
 };
 
 export const uploadPhoto = async (file: File): Promise<string> => {

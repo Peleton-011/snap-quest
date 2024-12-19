@@ -14,14 +14,15 @@ const client = new MongoClient(uri, {
 
 export async function GET(
 	req: NextRequest,
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		await client.connect();
 		const db = client.db("promptsDB");
 		const promptSetsCollection = db.collection("promptSets");
 
-		const { id } = await req.json(); // Access the "id" from context.params
-
+		const { id } = await params;
+		console.log(req.nextUrl.searchParams);
 		if (!id) {
 			return NextResponse.json(
 				{ error: "Missing 'id' parameter" },

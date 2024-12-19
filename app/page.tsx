@@ -46,8 +46,8 @@ const App: React.FC = () => {
 		const loadPrompts = async () => {
 			try {
 				if (!promptSet._id) return;
-				const prompts = await fetchPrompts(promptSet._id);
-				console.log(prompts);
+				const { prompts } = await fetchPrompts(promptSet._id);
+
 				setTiles(
 					prompts.map((prompt: Prompt, idx: number) => ({
 						id: idx,
