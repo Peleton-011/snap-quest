@@ -1,27 +1,66 @@
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { PDFDocument, PDFPage, rgb, StandardFonts } from "pdf-lib";
 
-// Define constants for the PDF page size, margins, and minimum row height
+// Define constants for the PDF page size, margins, and sizes
 const PAGE_WIDTH = 600;
 const PAGE_HEIGHT = 800;
 const MARGIN = 30;
-const MIN_ROW_HEIGHT = 150; // Minimum height for each row (space for image and prompt)
+const BASE_UNIT = 120; // Base unit for tile sizes
 
-// Define theme colors based on the app's dark theme
-const PRIMARY_COLOR = rgb(0.341, 0.89, 0.537); // #57e389 (Primary color)
-const BACKGROUND_COLOR = rgb(0.071, 0.071, 0.071); // #121212 (Dark background color)
-const FOREGROUND_COLOR = rgb(1, 1, 1); // #ffffff (Primary text color)
+// Colors
+const PRIMARY_COLOR = rgb(0.341, 0.89, 0.537);
+const BACKGROUND_COLOR = rgb(0.071, 0.071, 0.071);
+const FOREGROUND_COLOR = rgb(1, 1, 1);
 
-export async function generatePDF(
-	title: string,
-	tiles: { prompt: string; image: string | null }[]
-) {
+// Define possible tile sizes based on orientation
+const TILE_SIZES = {
+	portrait: [
+		{ width: 1, height: 1 }, // 1x1
+		{ width: 1, height: 2 }, // 1x2
+		{ width: 2, height: 2 }, // 2x2
+	],
+	landscape: [
+		{ width: 1, height: 1 }, // 1x1
+		{ width: 2, height: 1 }, // 2x1
+		{ width: 2, height: 2 }, // 2x2
+	],
+};
+
+interface Tile {
+	prompt: string;
+	image: string | null;
+	width?: number;
+	height?: number;
+}
+
+interface Position {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
+
+export async function generatePDF(title: string, tiles: Tile[]) {
 	const pdfDoc = await PDFDocument.create();
 	let page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
 	const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-	let yPosition = PAGE_HEIGHT - MARGIN;
+	let currentY = PAGE_HEIGHT - MARGIN;
 
-	// Function to draw the background on a page
-	const drawBackground = (page: any) => {
+	// Helper function to determine image orientation
+	const getImageOrientation = (
+		width: number,
+		height: number
+	): "portrait" | "landscape" => {
+		return height > width ? "portrait" : "landscape";
+	};
+
+	// Helper function to get random tile size based on orientation
+	const getRandomTileSize = (orientation: "portrait" | "landscape") => {
+		const sizes = TILE_SIZES[orientation];
+		return sizes[Math.floor(Math.random() * sizes.length)];
+	};
+
+	// Function to draw background
+	const drawBackground = (page: PDFPage) => {
 		page.drawRectangle({
 			x: 0,
 			y: 0,
@@ -31,145 +70,118 @@ export async function generatePDF(
 		});
 	};
 
-	// Function to add a new page and reset `yPosition`
+	// Function to add new page
 	const addNewPage = () => {
 		page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
 		drawBackground(page);
-		yPosition = PAGE_HEIGHT - MARGIN;
+		currentY = PAGE_HEIGHT - MARGIN;
+		return page;
 	};
 
-	// Function to draw images and prompts
-	const drawImages = async () => {
-		let xPosition = MARGIN;
-		let rowHeight = 0;
-
-		for (let tile of tiles) {
-			const image = tile.image;
-			const prompt = tile.prompt;
-
-			if (!image) {
-				console.warn("Skipping tile due to missing image.");
-				continue;
-			}
-
-			try {
-				// Fetch and validate image
-				const imageBytes = await fetch(image).then(async (res) => {
-					if (!res.ok) {
-						throw new Error(
-							`Failed to fetch image: ${res.statusText}`
-						);
-					}
-					const contentType = res.headers.get("Content-Type");
-					if (
-						!contentType ||
-						(!contentType.startsWith("image/jpeg") &&
-							!contentType.startsWith("image/png"))
-					) {
-						throw new Error(
-							"Unsupported image type, expected JPEG or PNG."
-						);
-					}
-					return res.arrayBuffer();
-				});
-
-				// Embed the image based on its type
-				const contentType = await fetch(image).then((res) =>
-					res.headers.get("Content-Type")
-				);
-				const imageObj =
-					contentType === "image/png"
-						? await pdfDoc.embedPng(imageBytes)
-						: await pdfDoc.embedJpg(imageBytes);
-
-				const { width, height } = imageObj;
-				const aspectRatio = width / height;
-
-				// Limit the image size to fit within max dimensions
-				const maxDimension = 250;
-				let imgWidth = width;
-				let imgHeight = height;
-
-				if (imgWidth > maxDimension) {
-					imgWidth = maxDimension;
-					imgHeight = imgWidth / aspectRatio;
-				}
-
-				if (imgHeight > maxDimension) {
-					imgHeight = maxDimension;
-					imgWidth = imgHeight * aspectRatio;
-				}
-
-				const totalHeight = imgHeight + 30; // Image height + space for prompt
-
-				// Check if there's space for the image and prompt
-				if (yPosition - totalHeight < MARGIN) {
-					addNewPage();
-					xPosition = MARGIN;
-					rowHeight = 0;
-				}
-
-				// Check if the image fits horizontally
-				if (xPosition + imgWidth + MARGIN > PAGE_WIDTH) {
-					xPosition = MARGIN;
-					yPosition -= rowHeight; // Move yPosition down by the row height
-					rowHeight = 0;
-
-					// Check again if there's enough vertical space
-					if (yPosition - totalHeight < MARGIN) {
-						addNewPage();
-						xPosition = MARGIN;
-					}
-				}
-
-				// Draw the image
-				page.drawImage(imageObj, {
-					x: xPosition,
-					y: yPosition - imgHeight,
-					width: imgWidth,
-					height: imgHeight,
-				});
-
-				// Draw the prompt below the image
-				page.drawText(prompt, {
-					x: xPosition,
-					y: yPosition - imgHeight - 15,
-					size: 12,
-					color: FOREGROUND_COLOR,
-					maxWidth: imgWidth,
-					lineHeight: 14,
-				});
-
-				// Update rowHeight and xPosition
-				rowHeight = Math.max(rowHeight, totalHeight);
-				xPosition += imgWidth + MARGIN;
-			} catch (error) {
-				console.error(`Error processing image ${image}:`, error);
-				continue; // Skip this image and proceed with the next tile
-			}
-		}
-
-		yPosition -= rowHeight; // Final adjustment after all rows
-	};
-
-	// Draw the background for the first page
+	// Initialize the first page
 	drawBackground(page);
 
-	// Add the title to the first page
+	// Draw title
 	page.drawText(title, {
 		x: MARGIN,
-		y: yPosition,
+		y: currentY,
 		size: 24,
-		color: PRIMARY_COLOR,
 		font: boldFont,
+		color: PRIMARY_COLOR,
 	});
+	currentY -= 50;
 
-	yPosition -= 40; // Space after the title
+	// Track available spaces on the current row
+	let availableWidth = PAGE_WIDTH - 2 * MARGIN;
+	let xPosition = MARGIN;
+	let rowHeight = 0;
 
-	// Draw images and prompts
-	await drawImages();
+	// Process each tile
+	for (const tile of tiles) {
+		if (!tile.image) continue;
 
-	// Finalize the PDF
+		try {
+			// Fetch and embed image
+			const imageBytes = await fetch(tile.image).then((res) =>
+				res.arrayBuffer()
+			);
+			const imageObj = tile.image.endsWith(".png")
+				? await pdfDoc.embedPng(imageBytes)
+				: await pdfDoc.embedJpg(imageBytes);
+
+			const orientation = getImageOrientation(
+				imageObj.width,
+				imageObj.height
+			);
+			const tileSize = getRandomTileSize(orientation);
+
+			// Calculate actual dimensions
+			const tileWidth = tileSize.width * BASE_UNIT;
+			const tileHeight = tileSize.height * BASE_UNIT;
+
+			// Check if we need to start a new row or page
+			if (xPosition + tileWidth > PAGE_WIDTH - MARGIN) {
+				xPosition = MARGIN;
+				currentY -= rowHeight + 20;
+				rowHeight = 0;
+			}
+
+			// Check if we need a new page
+			if (currentY - tileHeight < MARGIN) {
+				page = addNewPage();
+				xPosition = MARGIN;
+				rowHeight = 0;
+			}
+
+			// Calculate image dimensions preserving aspect ratio
+			const aspectRatio = imageObj.width / imageObj.height;
+			let imgWidth = tileWidth - 10;
+			let imgHeight = imgWidth / aspectRatio;
+
+			if (imgHeight > tileHeight - 30) {
+				imgHeight = tileHeight - 30;
+				imgWidth = imgHeight * aspectRatio;
+			}
+
+			// Draw tile background
+			page.drawRectangle({
+				x: xPosition,
+				y: currentY - tileHeight,
+				width: tileWidth - 5,
+				height: tileHeight - 5,
+				color: rgb(0.1, 0.1, 0.1),
+				borderColor: PRIMARY_COLOR,
+				borderWidth: 1,
+			});
+
+			// Draw image
+			page.drawImage(imageObj, {
+				x: xPosition + (tileWidth - imgWidth) / 2,
+				y: currentY - tileHeight + (tileHeight - imgHeight) / 2,
+				width: imgWidth,
+				height: imgHeight,
+			});
+
+			// Draw prompt
+			const promptWidth = tileWidth - 20;
+			page.drawText(tile.prompt, {
+				x: xPosition + 10,
+				y: currentY - tileHeight + 10,
+				size: 10,
+				color: FOREGROUND_COLOR,
+				maxWidth: promptWidth,
+				lineHeight: 12,
+			});
+
+			// Update positions
+			xPosition += tileWidth;
+			rowHeight = Math.max(rowHeight, tileHeight);
+		} catch (error) {
+			console.error(`Error processing image:`, error);
+			continue;
+		}
+	}
+
 	const pdfBytes = await pdfDoc.save();
 	return new Blob([pdfBytes], { type: "application/pdf" });
 }
