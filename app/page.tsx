@@ -10,6 +10,7 @@ import "./app.css";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "./theme";
 import { PromptSet, Prompt, Tile } from "./types/types";
+import MosaicGrid from "./components/MosaicGrid";
 
 const defaultPromptSet: PromptSet = {
 	name: "Select...",
@@ -65,15 +66,6 @@ const App: React.FC = () => {
 		loadPrompts();
 	}, [promptSet]);
 
-	const markTileCompleted = (id: number, image: string | null) => {
-		setTiles((prevTiles) =>
-			prevTiles.map((tile) =>
-				tile.id === id ? { ...tile, completed: !!image, image } : tile
-			)
-		);
-		setActiveTile(null);
-	};
-
 	// Generate mosaic sizes dynamically based on image orientation
 	const calculateMosaicSize = (orientation: "landscape" | "portrait") => {
 		if (orientation === "portrait") {
@@ -119,6 +111,50 @@ const App: React.FC = () => {
 		} finally {
 			setIsDownloadingImages(false);
 		}
+	};
+
+	const determineImageOrientation = (
+		imageUrl: string
+	): Promise<"portrait" | "landscape"> => {
+		return new Promise((resolve) => {
+			const img = new Image();
+			img.onload = () => {
+				resolve(img.height > img.width ? "portrait" : "landscape");
+			};
+			img.src = imageUrl;
+		});
+	};
+
+	const markTileCompleted = async (id: number, image: string | null) => {
+		if (!image) {
+			setTiles((prevTiles) =>
+				prevTiles.map((tile) =>
+					tile.id === id
+						? { ...tile, completed: false, image: null }
+						: tile
+				)
+			);
+			return;
+		}
+
+		const orientation = await determineImageOrientation(image);
+		const newSize = calculateMosaicSize(orientation);
+
+		setTiles((prevTiles) =>
+			prevTiles.map((tile) =>
+				tile.id === id
+					? {
+							...tile,
+							completed: true,
+							image,
+							width: newSize.width,
+							height: newSize.height,
+							orientation,
+					  }
+					: tile
+			)
+		);
+		setActiveTile(null);
 	};
 
 	return (
@@ -173,73 +209,11 @@ const App: React.FC = () => {
 				</Box>
 
 				{tiles.length > 0 && (
-					<Grid
-						container
-						spacing={2}
-						sx={{
-							display: "grid",
-							gridTemplateColumns:
-								"repeat(auto-fit, minmax(150px, 1fr))",
-							gap: "20px",
-						}}
-					>
-						{tiles.map((tile) => (
-							<Box
-								key={tile.id}
-								sx={{
-									display: "flex",
-									flexDirection: "column",
-									alignItems: "center",
-								}}
-							>
-								{/* Button or Image */}
-								<Button
-									fullWidth
-									variant={
-										tile.completed
-											? "contained"
-											: "outlined"
-									}
-									color={
-										tile.completed ? "success" : "primary"
-									}
-									onClick={() => setActiveTile(tile)}
-									sx={{
-										height: "150px", // Adjust to fit the layout
-										backgroundImage: tile.image
-											? `url(${tile.image})`
-											: "none",
-										backgroundSize: "cover",
-										backgroundPosition: "center",
-										display: "flex",
-										alignItems: "center",
-										justifyContent: "center",
-										color: tile.image ? "white" : "inherit",
-									}}
-								>
-									{!tile.image
-										? tile.prompt.shortPrompt[language]
-										: null}
-								</Button>
-
-								{/* Prompt below the button/image */}
-								{tile.completed && (
-									<Typography
-										variant="body2"
-										sx={{
-											marginTop: "10px",
-											textAlign: "center",
-											wordBreak: "break-word",
-											maxWidth: "100%",
-											color: "#6c757d",
-										}}
-									>
-										{tile.prompt.shortPrompt[language]}
-									</Typography>
-								)}
-							</Box>
-						))}
-					</Grid>
+					<MosaicGrid
+						tiles={tiles}
+						onTileClick={(tile) => setActiveTile(tile)}
+						language={language}
+					/>
 				)}
 
 				{/* Modal for capturing/uploading images */}
