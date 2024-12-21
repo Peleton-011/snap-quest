@@ -3,7 +3,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 // Define constants for the PDF page size, margins, and minimum row height
 const PAGE_WIDTH = 600;
 const PAGE_HEIGHT = 800;
-const MARGIN = 50;
+const MARGIN = 30;
 const MIN_ROW_HEIGHT = 150; // Minimum height for each row (space for image and prompt)
 
 // Define theme colors based on the app's dark theme
@@ -47,12 +47,41 @@ export async function generatePDF(
 			const image = tile.image;
 			const prompt = tile.prompt;
 
-			if (image) {
-				// Fetch and embed image
-				const imageBytes = await fetch(image).then((res) =>
-					res.arrayBuffer()
+			if (!image) {
+				console.warn("Skipping tile due to missing image.");
+				continue;
+			}
+
+			try {
+				// Fetch and validate image
+				const imageBytes = await fetch(image).then(async (res) => {
+					if (!res.ok) {
+						throw new Error(
+							`Failed to fetch image: ${res.statusText}`
+						);
+					}
+					const contentType = res.headers.get("Content-Type");
+					if (
+						!contentType ||
+						(!contentType.startsWith("image/jpeg") &&
+							!contentType.startsWith("image/png"))
+					) {
+						throw new Error(
+							"Unsupported image type, expected JPEG or PNG."
+						);
+					}
+					return res.arrayBuffer();
+				});
+
+				// Embed the image based on its type
+				const contentType = await fetch(image).then((res) =>
+					res.headers.get("Content-Type")
 				);
-				const imageObj = await pdfDoc.embedJpg(imageBytes);
+				const imageObj =
+					contentType === "image/png"
+						? await pdfDoc.embedPng(imageBytes)
+						: await pdfDoc.embedJpg(imageBytes);
+
 				const { width, height } = imageObj;
 				const aspectRatio = width / height;
 
@@ -114,6 +143,9 @@ export async function generatePDF(
 				// Update rowHeight and xPosition
 				rowHeight = Math.max(rowHeight, totalHeight);
 				xPosition += imgWidth + MARGIN;
+			} catch (error) {
+				console.error(`Error processing image ${image}:`, error);
+				continue; // Skip this image and proceed with the next tile
 			}
 		}
 
