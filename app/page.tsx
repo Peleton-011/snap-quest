@@ -88,7 +88,7 @@ const App: React.FC = () => {
 		try {
 			setIsGeneratingPDF(true);
 			const pdfBlob = await generatePDF(
-				"SnapQuest: " + promptSet,
+				"SnapQuest: " + promptSet.name,
 				tiles.map((tile) => ({
 					prompt: tile.prompt.fullPrompt[language],
 					image: tile.image,
