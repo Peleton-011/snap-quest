@@ -13,6 +13,7 @@ import { PromptSet, Prompt, Tile } from "./types/types";
 import MosaicGrid from "./components/MosaicGrid";
 
 const defaultPromptSet: PromptSet = {
+	_id: "foobar",
 	name: "Select...",
 	prompts: [],
 };
@@ -46,7 +47,7 @@ const App: React.FC = () => {
 	useEffect(() => {
 		const loadPrompts = async () => {
 			try {
-				if (!promptSet._id) return;
+				if (!promptSet._id || promptSet._id === "foobar") return;
 				const { prompts } = await fetchPrompts(promptSet._id);
 
 				setTiles(
