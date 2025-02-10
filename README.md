@@ -1,50 +1,66 @@
-# React + TypeScript + Vite
+# SnapQuest
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SnapQuest is an engaging and interactive photo scavenger hunt game where players receive a set of prompts and capture images to match them. The game allows users to explore, be creative, and have fun while taking pictures. Users can later export their photos in a PDF or as a ZIP file for easy sharing and saving.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Fast & Responsive UI**: Built with Next.js and React, ensuring a smooth user experience.
+- **Multilingual Support**: Prompts and interface elements adapt based on the selected language.
+- **Interactive Mosaic Grid**: Dynamic layout adjusts based on image orientation for a visually appealing gallery.
+- **Camera & Upload Support**: Capture photos directly or upload existing ones.
+- **Export Options**: Generate a PDF or ZIP archive of all captured images.
+- **Database Integration**: Stores prompts and user submissions efficiently using MongoDB.
+- **Sleek Dark Mode UI**: Designed for readability and style, following modern UI/UX trends.
+- **Optimized & Maintainable Codebase**: Clean and structured codebase for scalability and future development.
 
-## Expanding the ESLint configuration
+## Technologies Used
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- **Frontend**: React (Next.js), TypeScript, Material-UI
+- **Backend**: Next.js API Routes, MongoDB
+- **Styling**: CSS Modules, Global Styles (Dark Theme)
+- **Data Management**: MongoDB for prompts, IndexedDB (Dexie) for local storage
+- **Utilities**: PDF-lib (for PDF generation), JSZip (for ZIP exports), Axios (API requests)
 
-- Configure the top-level `parserOptions` property like this:
+## Setup Instructions
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+### Prerequisites
+- Node.js (>=16.0)
+- MongoDB instance (for storing prompts)
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### Installation
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/your-repo/snapquest.git
+   cd snapquest
+   ```
+2. Install dependencies:
+   ```sh
+   npm install
+   ```
+3. Set up environment variables:
+   Create a `.env` file in the root directory and add:
+   ```sh
+   MONGODB_URI=your_mongodb_connection_string
+   ```
+4. Run the development server:
+   ```sh
+   npm run dev
+   ```
+5. Open `http://localhost:3000` in your browser.
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+## Usage
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+1. **Select a Prompt Set**: Choose a themed challenge from the dropdown.
+2. **Take or Upload Photos**: Click on a prompt tile to open the camera modal and snap a picture or upload one.
+3. **Complete Your Grid**: As you take pictures, your mosaic fills up dynamically.
+4. **Export Your Collection**: Download your photos as a PDF or ZIP file.
+
+## Future Enhancements
+- Social sharing features.
+- AI-based image recognition for better prompt validation.
+- Mobile app version for iOS & Android.
+
+---
+
+SnapQuest is a fun way to challenge your creativity and photography skills. Try it today and start snapping!
+
