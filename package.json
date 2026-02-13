@@ -13,7 +13,6 @@
     "@emotion/react": "^11.13.5",
     "@emotion/styled": "^11.13.5",
     "@mui/material": "^6.1.8",
-    "@vitejs/plugin-react": "^4.3.4",
     "axios": "^1.7.8",
     "dexie": "^4.0.10",
     "dotenv": "^16.4.7",
@@ -22,12 +21,11 @@
     "formidable": "^3.5.2",
     "jszip": "^3.10.1",
     "mongodb": "^6.12.0",
-    "next": "^15.0.3",
+    "next": "^16.1.6",
     "pdf-lib": "^1.17.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "typescript-eslint": "^8.16.0",
-    "vite": "^6.0.1"
+    "typescript-eslint": "^8.16.0"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^15.1.1",
