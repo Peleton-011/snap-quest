@@ -100,13 +100,13 @@ const App: React.FC = () => {
 			sizes.push({ width: 2, height: 2 });
 
 			if (orientation === "portrait") {
-                console.log("portrait")
+				console.log("portrait");
 				// Add vertical rectangles (1x2)
 				sizes.push({ width: 1, height: 2 });
 				sizes.push({ width: 1, height: 2 });
 				sizes.push({ width: 2, height: 3 });
 			} else if (orientation === "landscape") {
-                console.log("landscape")
+				console.log("landscape");
 				// Add horizontal rectangles (2x1)
 				sizes.push({ width: 2, height: 1 });
 				sizes.push({ width: 2, height: 1 });
@@ -122,7 +122,7 @@ const App: React.FC = () => {
 			return sizes[Math.floor(Math.random() * sizes.length)];
 		};
 
-        return getRandomSize(orientation);
+		return getRandomSize(orientation);
 	};
 
 	// Generate and download the PDF
@@ -221,6 +221,23 @@ const App: React.FC = () => {
 		setActiveTile(null);
 	};
 
+	const resetGrid = async () => {
+		await db.photos
+			.where("promptSetId")
+			.equals(Number(promptSet.id))
+			.delete(); // "bulkDelete")bulkDelete(tiles.map((t) => t.id));
+		setTiles((prevTiles) =>
+			prevTiles.map((tile) => ({
+				...tile,
+				completed: false,
+				image: null,
+				width: 0,
+				height: 0,
+				orientation: "landscape",
+			})),
+		);
+	};
+
 	return (
 		<ThemeProvider theme={theme}>
 			<Box p={4}>
@@ -273,6 +290,14 @@ const App: React.FC = () => {
 							</option>
 						))}
 					</select>
+					<Button
+						onClick={resetGrid}
+						variant="contained"
+						color="secondary"
+						disabled={!tiles.some((t) => !!t.image)}
+					>
+						Clear Images
+					</Button>
 				</Box>
 
 				{tiles.length > 0 && (
