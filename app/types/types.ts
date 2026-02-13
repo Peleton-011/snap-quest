@@ -1,7 +1,8 @@
 export interface Prompt {
 	fullPrompt: { [key: string]: string };
 	shortPrompt: { [key: string]: string };
-	promptSetId: string;
+	promptSetId: number;
+    id?: number;
 }
 
 export interface PromptSet {
