@@ -58,7 +58,7 @@ const App: React.FC = () => {
 						image: null,
 						width: 1, // Default mosaic size
 						height: 1,
-					}))
+					})),
 				);
 			} catch (error) {
 				console.error("Failed to load prompts:", error);
@@ -87,7 +87,7 @@ const App: React.FC = () => {
 					image: tile.image,
 					width: tile.width,
 					height: tile.height,
-				}))
+				})),
 			);
 			const url = URL.createObjectURL(pdfBlob);
 			const link = document.createElement("a");
@@ -115,7 +115,7 @@ const App: React.FC = () => {
 	};
 
 	const determineImageOrientation = (
-		imageUrl: string
+		imageUrl: string,
 	): Promise<"portrait" | "landscape"> => {
 		return new Promise((resolve) => {
 			const img = new Image();
@@ -132,8 +132,8 @@ const App: React.FC = () => {
 				prevTiles.map((tile) =>
 					tile.id === id
 						? { ...tile, completed: false, image: null }
-						: tile
-				)
+						: tile,
+				),
 			);
 			return;
 		}
@@ -151,9 +151,9 @@ const App: React.FC = () => {
 							width: newSize.width,
 							height: newSize.height,
 							orientation,
-					  }
-					: tile
-			)
+						}
+					: tile,
+			),
 		);
 		setActiveTile(null);
 	};
@@ -183,7 +183,7 @@ const App: React.FC = () => {
 						{promptSet.name === "Select..."
 							? "Select a Prompt Set:"
 							: promptSet.name.slice(0, 1).toUpperCase() +
-							  promptSet.name.slice(1)}
+								promptSet.name.slice(1)}
 					</Typography>
 					<select
 						value={promptSet.name}
@@ -191,8 +191,8 @@ const App: React.FC = () => {
 							setPromptSet(
 								promptSets.find(
 									(promptSet) =>
-										promptSet._id === e.target.value
-								) || promptSets[0]
+										promptSet._id === e.target.value,
+								) || promptSets[0],
 							)
 						}
 						style={{
