@@ -1,4 +1,4 @@
-let promptsets = [
+export const promptsets = [
 	{
 		_id: "6761b576930c8dacc5339f07",
 		name: "Books Prompts",

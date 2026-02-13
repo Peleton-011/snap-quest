@@ -13,9 +13,8 @@ import { PromptSet, Prompt, Tile } from "./types/types";
 import MosaicGrid from "./components/MosaicGrid";
 
 const defaultPromptSet: PromptSet = {
-	_id: "foobar",
+	id: undefined,
 	name: "Select...",
-	prompts: [],
 };
 
 const App: React.FC = () => {
@@ -33,13 +32,7 @@ const App: React.FC = () => {
 	useEffect(() => {
         const fetchPromptSets = async () => {
             const data = await db.promptSets.toArray();
-            try {
-				const response = await fetch("/api/promptSets");
-				const data = await response.json();
-				setPromptSets([defaultPromptSet, ...data]);
-			} catch (error) {
-				console.error("Failed to fetch prompt sets:", error);
-			}
+            setPromptSets([defaultPromptSet, ...data]);
 		};
 		fetchPromptSets();
 	}, []);
@@ -48,19 +41,21 @@ const App: React.FC = () => {
 	useEffect(() => {
 		const loadPrompts = async () => {
 			try {
-				if (!promptSet._id || promptSet._id === "foobar") return;
-				const { prompts } = await fetchPrompts(promptSet._id);
+				if (!promptSet.id) return;
+                console.log(promptSet)
+				const prompts = (await db.prompts.where("promptSetId").equals(Number(promptSet.id)).toArray());
+                console.log("prompts", prompts)
 
-				setTiles(
-					prompts.map((prompt: Prompt, idx: number) => ({
-						id: idx,
-						prompt,
-						completed: false,
-						image: null,
-						width: 1, // Default mosaic size
-						height: 1,
-					})),
-				);
+				// setTiles(
+				// 	prompts.map((prompt: Prompt, idx: number) => ({
+				// 		id: idx,
+				// 		prompt,
+				// 		completed: false,
+				// 		image: null,
+				// 		width: 1, // Default mosaic size
+				// 		height: 1,
+				// 	})),
+				// );
 			} catch (error) {
 				console.error("Failed to load prompts:", error);
 			}
@@ -192,7 +187,7 @@ const App: React.FC = () => {
 							setPromptSet(
 								promptSets.find(
 									(promptSet) =>
-										promptSet._id === e.target.value,
+										promptSet.id === Number(e.target.value),
 								) || promptSets[0],
 							)
 						}
@@ -203,7 +198,7 @@ const App: React.FC = () => {
 						}}
 					>
 						{promptSets.map((promptSet) => (
-							<option value={promptSet._id} key={promptSet._id}>
+							<option value={Number(promptSet.id)} key={promptSet.id}>
 								{promptSet.name}
 							</option>
 						))}
