@@ -46,15 +46,40 @@ const App: React.FC = () => {
 					.where("promptSetId")
 					.equals(Number(promptSet.id))
 					.toArray();
+
+				const photos = await db.photos
+					.where("promptSetId")
+					.equals(Number(promptSet.id))
+					.toArray();
+
+				const photoMap = new Map(
+					photos.map((p) => [p.promptId, p.image]),
+				);
+
 				setTiles(
-					prompts.map((prompt: Prompt, idx: number) => ({
-						id: idx,
-						prompt,
-						completed: false,
-						image: null,
-						width: 1, // Default mosaic size
-						height: 1,
-					})),
+					await Promise.all(
+						prompts.map(async (prompt: Prompt) => {
+							const blob = photoMap.get(prompt.id!);
+							let blobUrl = null;
+							let size = { width: 1, height: 1 };
+
+							if (blob) {
+								blobUrl = URL.createObjectURL(blob);
+								const orientation =
+									await determineImageOrientation(blobUrl);
+								size = calculateMosaicSize(orientation);
+							}
+
+							return {
+								id: prompt.id!,
+								prompt,
+								completed: false,
+								image: null,
+								width: size.width, // Default mosaic size
+								height: size.height,
+							};
+						}),
+					),
 				);
 			} catch (error) {
 				console.error("Failed to load prompts:", error);
@@ -65,11 +90,33 @@ const App: React.FC = () => {
 
 	// Generate mosaic sizes dynamically based on image orientation
 	const calculateMosaicSize = (orientation: "landscape" | "portrait") => {
-		if (orientation === "portrait") {
-			return { width: 1, height: Math.random() > 0.5 ? 2 : 1 }; // 1x1 or 1x2
-		} else {
-			return { width: Math.random() > 0.5 ? 2 : 1, height: 1 }; // 1x1 or 2x1
-		}
+		const getValidSizes = (orientation: string) => {
+			const sizes = [];
+
+			// Add square options (1x1, 2x2)
+			sizes.push({ width: 1, height: 1 });
+			sizes.push({ width: 2, height: 2 });
+
+			if (orientation === "portrait") {
+				// Add vertical rectangles (1x2)
+				sizes.push({ width: 1, height: 2 });
+				sizes.push({ width: 2, height: 3 });
+			} else if (orientation === "landscape") {
+				// Add horizontal rectangles (2x1)
+				sizes.push({ width: 2, height: 1 });
+				sizes.push({ width: 3, height: 2 });
+			}
+
+			return sizes;
+		};
+
+		// Randomly select a valid size for a tile
+		const getRandomSize = (orientation: string) => {
+			const sizes = getValidSizes(orientation);
+			return sizes[Math.floor(Math.random() * sizes.length)];
+		};
+
+        return getRandomSize(orientation);
 	};
 
 	// Generate and download the PDF
@@ -122,8 +169,13 @@ const App: React.FC = () => {
 		});
 	};
 
-	const markTileCompleted = async (id: number, image: string | null) => {
-		if (!image) {
+	const markTileCompleted = async (
+		id: number,
+		imageBlob: Blob | null,
+		orientation: "landscape" | "portrait",
+	) => {
+		const promptId = tiles.find((t) => t.id === id)?.prompt.id!;
+		if (!imageBlob) {
 			setTiles((prevTiles) =>
 				prevTiles.map((tile) =>
 					tile.id === id
@@ -131,11 +183,20 @@ const App: React.FC = () => {
 						: tile,
 				),
 			);
+			await db.photos.where("promptId").equals(promptId).delete();
+
 			return;
 		}
 
-		const orientation = await determineImageOrientation(image);
 		const newSize = calculateMosaicSize(orientation);
+
+		await db.photos.where("promptId").equals(promptId).delete();
+		await db.photos.add({
+			promptId,
+			promptSetId: Number(promptSet.id),
+			image: imageBlob,
+		});
+		const blobUrl = URL.createObjectURL(imageBlob);
 
 		setTiles((prevTiles) =>
 			prevTiles.map((tile) =>
@@ -143,7 +204,7 @@ const App: React.FC = () => {
 					? {
 							...tile,
 							completed: true,
-							image,
+							blobUrl,
 							width: newSize.width,
 							height: newSize.height,
 							orientation,
@@ -222,7 +283,7 @@ const App: React.FC = () => {
 						tile={activeTile}
 						onClose={() => setActiveTile(null)}
 						onSave={(id, image, orientation) =>
-							markTileCompleted(id, image)
+							markTileCompleted(id, image, orientation)
 						}
 						language={language}
 					/>

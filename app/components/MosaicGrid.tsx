@@ -2,31 +2,16 @@ import React, { useState, useEffect } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import { Prompt, Tile } from "@/app/types/types";
 
-const MosaicGrid = ({ tiles, onTileClick, language }: { tiles: Tile[]; onTileClick: (tile: Tile) => void; language: string; }) => {
-	// Calculate valid sizes based on image orientation
-	const getValidSizes = (orientation: string) => {
-		const sizes = [];
-
-		// Add square options (1x1, 2x2)
-		sizes.push({ width: 1, height: 1 });
-		sizes.push({ width: 2, height: 2 });
-
-		if (orientation === "portrait") {
-			// Add vertical rectangles (1x2)
-			sizes.push({ width: 1, height: 2 });
-		} else if (orientation === "landscape") {
-			// Add horizontal rectangles (2x1)
-			sizes.push({ width: 2, height: 1 });
-		}
-
-		return sizes;
-	};
-
-	// Randomly select a valid size for a tile
-	const getRandomSize = (orientation: string) => {
-		const sizes = getValidSizes(orientation);
-		return sizes[Math.floor(Math.random() * sizes.length)];
-	};
+const MosaicGrid = ({
+	tiles,
+	onTileClick,
+	language,
+}: {
+	tiles: Tile[];
+	onTileClick: (tile: Tile) => void;
+	language: string;
+}) => {
+	alert(JSON.stringify(tiles.map((t) => t.image)));
 
 	// Calculate grid layout properties for a tile
 	const getTileStyle = (tile: Tile) => {

@@ -3,21 +3,21 @@ import Dexie from "dexie";
 import { promptsets as defaultPromptSets } from "../data/defaultPromptSets";
 
 interface Photo {
-	id: number;
+	id?: number;
 	promptId: number;
 	promptSetId: number;
 	image: Blob;
 }
 
 interface PromptSet {
-	id: number;
+	id?: number;
 	name: string;
 	description: string;
 	isDefault: boolean;
 }
 
 interface Prompt {
-	id: number;
+	id?: number;
 	promptSetId: number;
 	fullPrompt: { [key: string]: string };
 	shortPrompt: { [key: string]: string };

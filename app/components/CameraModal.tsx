@@ -8,21 +8,21 @@ import {
 	Typography,
 } from "@mui/material";
 
-import {Prompt, Tile } from "@/app/types/types"
+import { Tile } from "@/app/types/types"
 
 interface CameraModalProps {
 	tile: Tile;
 	onClose: () => void;
 	onSave: (
 		id: number,
-		image: string | null,
+		image: Blob | null,
 		orientation: "landscape" | "portrait"
 	) => void;
     language: string;
 }
 
 const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave, language }) => {
-	const [image, setImage] = useState<string | null>(tile.image);
+	const [preview, setPreview] = useState<string | null>(tile.image);
 
 	const handleCapture = async (
 		event: React.ChangeEvent<HTMLInputElement>
@@ -37,21 +37,15 @@ const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave, langua
 			img.onload = () => {
 				const orientation =
 					img.width > img.height ? "landscape" : "portrait";
-				setImage(url);
-				onSave(tile.id, url, orientation);
+				setPreview(url);
+				onSave(tile.id, file, orientation);
 			};
 		}
 	};
 
 	const handleDelete = () => {
-		setImage(null);
-	};
-
-	const handleSave = () => {
-		if (image) {
-			const orientation = "landscape"; // Assume default, as orientation is calculated on capture
-			onSave(tile.id, image, orientation);
-		}
+		setPreview(null);
+        onSave(tile.id, null, "landscape");
 	};
 
 	return (
@@ -59,10 +53,10 @@ const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave, langua
 			<DialogContent className="modal">
 				<Typography variant="h6">{tile.prompt.fullPrompt[language]}</Typography>
 				<Box mt={2}>
-					{image && (
+					{preview && (
 						<Box>
 							<img
-								src={image}
+								src={preview}
 								alt="Preview"
 								style={{ width: "100%", borderRadius: "4px" }}
 							/>
@@ -84,7 +78,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave, langua
 				</Box>
 			</DialogContent>
 			<DialogActions className="modal">
-				{!image && (
+				{!preview && (
 					<Button variant="contained" component="label">
 						Upload or Take a Photo
 						<input
@@ -95,10 +89,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ tile, onClose, onSave, langua
 						/>
 					</Button>
 				)}
-				<Button onClick={onClose}>Cancel</Button>
-				<Button onClick={handleSave} disabled={!image}>
-					Save
-				</Button>
+				<Button onClick={onClose}>Close</Button>
 			</DialogActions>
 		</Dialog>
 	);
