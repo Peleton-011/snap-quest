@@ -1,5 +1,6 @@
 let prompts = [
 	{
+		_id: "6761b575930c8dacc5339eee",
 		name: "Boleishons Prompts",
 		description: "A collection of prompts related to boleishons",
 		prompts: [
