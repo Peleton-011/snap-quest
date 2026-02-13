@@ -73,8 +73,8 @@ const App: React.FC = () => {
 							return {
 								id: prompt.id!,
 								prompt,
-								completed: false,
-								image: null,
+								completed: !!blob,
+								image: blobUrl,
 								width: size.width, // Default mosaic size
 								height: size.height,
 							};
@@ -95,14 +95,20 @@ const App: React.FC = () => {
 
 			// Add square options (1x1, 2x2)
 			sizes.push({ width: 1, height: 1 });
+			sizes.push({ width: 1, height: 1 });
+			sizes.push({ width: 1, height: 1 });
 			sizes.push({ width: 2, height: 2 });
 
 			if (orientation === "portrait") {
+                console.log("portrait")
 				// Add vertical rectangles (1x2)
+				sizes.push({ width: 1, height: 2 });
 				sizes.push({ width: 1, height: 2 });
 				sizes.push({ width: 2, height: 3 });
 			} else if (orientation === "landscape") {
+                console.log("landscape")
 				// Add horizontal rectangles (2x1)
+				sizes.push({ width: 2, height: 1 });
 				sizes.push({ width: 2, height: 1 });
 				sizes.push({ width: 3, height: 2 });
 			}
@@ -204,7 +210,7 @@ const App: React.FC = () => {
 					? {
 							...tile,
 							completed: true,
-							blobUrl,
+							image: blobUrl,
 							width: newSize.width,
 							height: newSize.height,
 							orientation,

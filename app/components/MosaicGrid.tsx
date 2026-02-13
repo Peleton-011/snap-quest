@@ -11,8 +11,6 @@ const MosaicGrid = ({
 	onTileClick: (tile: Tile) => void;
 	language: string;
 }) => {
-	alert(JSON.stringify(tiles.map((t) => t.image)));
-
 	// Calculate grid layout properties for a tile
 	const getTileStyle = (tile: Tile) => {
 		if (!tile.image) {
