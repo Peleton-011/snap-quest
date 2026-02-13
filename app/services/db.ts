@@ -35,27 +35,27 @@ class SnapQuestDB extends Dexie {
 			promptSets: "++id, name, isDefault",
 			prompts: "++id, promptSetId",
 		});
+
+		this.on("populate", async (tx) => {
+			for (const set of defaultPromptSets) {
+				const setId = await tx.table("promptSets").add({
+					name: set.name,
+					description: set.description,
+					isDefault: true,
+				});
+
+				await tx.table("prompts").bulkAdd(
+					set.prompts.map((p) => ({
+						promptSetId: setId as number,
+						fullPrompt: p.fullPrompt,
+						shortPrompt: p.shortPrompt,
+					})),
+				);
+			}
+		});
 	}
 }
 
 const db = new SnapQuestDB();
-
-db.on("populate", (tx) => {
-	for (const set of defaultPromptSets) {
-		tx.table("promptSets").add({
-			name: set.name,
-			description: set.description,
-			isDefault: true,
-		});
-
-		for (const prompt of set.prompts) {
-			tx.table("prompts").add({
-				promptSetId: set._id, // or however you map the IDs
-				fullPrompt: prompt.fullPrompt,
-				shortPrompt: prompt.shortPrompt,
-			});
-		}
-	}
-});
 
 export default db;
