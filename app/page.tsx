@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Box, Typography, Grid, Button } from "@mui/material";
 import CameraModal from "./components/CameraModal";
-import db from "./services/db"
+import db from "./services/db";
 import { generatePDF } from "./services/pdfGenerator";
 import { downloadImagesAsZip } from "./services/zipImages";
 import "./app.css";
@@ -30,9 +30,9 @@ const App: React.FC = () => {
 
 	// Fetch prompt sets from the server
 	useEffect(() => {
-        const fetchPromptSets = async () => {
-            const data = await db.promptSets.toArray();
-            setPromptSets([defaultPromptSet, ...data]);
+		const fetchPromptSets = async () => {
+			const data = await db.promptSets.toArray();
+			setPromptSets([defaultPromptSet, ...data]);
 		};
 		fetchPromptSets();
 	}, []);
@@ -42,7 +42,10 @@ const App: React.FC = () => {
 		const loadPrompts = async () => {
 			try {
 				if (!promptSet.id) return;
-				const prompts = (await db.prompts.where("promptSetId").equals(Number(promptSet.id)).toArray());
+				const prompts = await db.prompts
+					.where("promptSetId")
+					.equals(Number(promptSet.id))
+					.toArray();
 				setTiles(
 					prompts.map((prompt: Prompt, idx: number) => ({
 						id: idx,
@@ -195,7 +198,10 @@ const App: React.FC = () => {
 						}}
 					>
 						{promptSets.map((promptSet) => (
-							<option value={Number(promptSet.id)} key={promptSet.id}>
+							<option
+								value={Number(promptSet.id)}
+								key={promptSet.id}
+							>
 								{promptSet.name}
 							</option>
 						))}
