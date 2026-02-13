@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Box, Typography, Grid, Button } from "@mui/material";
 import CameraModal from "./components/CameraModal";
-import { fetchPrompts } from "./services/api";
+import db from "./services/db"
 import { generatePDF } from "./services/pdfGenerator";
 import { downloadImagesAsZip } from "./services/zipImages";
 import "./app.css";
@@ -31,8 +31,9 @@ const App: React.FC = () => {
 
 	// Fetch prompt sets from the server
 	useEffect(() => {
-		const fetchPromptSets = async () => {
-			try {
+        const fetchPromptSets = async () => {
+            const data = await db.promptSets.toArray();
+            try {
 				const response = await fetch("/api/promptSets");
 				const data = await response.json();
 				setPromptSets([defaultPromptSet, ...data]);

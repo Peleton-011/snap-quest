@@ -1,20 +1,24 @@
 // db.ts
 import Dexie from "dexie";
 
-export interface Photo {
-    id: number;
-    image: string;
-}
-
 class SnapQuestDB extends Dexie {
-    photos!: Dexie.Table<Photo, number>;
+	photos!: 
 
-    constructor() {
-        super("SnapQuestDB");
-        this.version(1).stores({
-            photos: "++id, image",
-        });
-    }
+	constructor() {
+		super("SnapQuestDB");
+		this.version(1).stores({
+			photos: "++id, promptId, promptSetId",
+			promptSets: "++id, name, isDefault",
+			prompts: "++id, promptSetId",
+		});
+	}
 }
 
-export const db = new SnapQuestDB();
+const db = new Dexie("SnapQuestDB");
+db.version(1).stores({
+	photos: "++id, promptId, promptSetId",
+	promptSets: "++id, name, isDefault",
+	prompts: "++id, promptSetId",
+});
+
+export default db;
