@@ -42,20 +42,17 @@ const App: React.FC = () => {
 		const loadPrompts = async () => {
 			try {
 				if (!promptSet.id) return;
-                console.log(promptSet)
 				const prompts = (await db.prompts.where("promptSetId").equals(Number(promptSet.id)).toArray());
-                console.log("prompts", prompts)
-
-				// setTiles(
-				// 	prompts.map((prompt: Prompt, idx: number) => ({
-				// 		id: idx,
-				// 		prompt,
-				// 		completed: false,
-				// 		image: null,
-				// 		width: 1, // Default mosaic size
-				// 		height: 1,
-				// 	})),
-				// );
+				setTiles(
+					prompts.map((prompt: Prompt, idx: number) => ({
+						id: idx,
+						prompt,
+						completed: false,
+						image: null,
+						width: 1, // Default mosaic size
+						height: 1,
+					})),
+				);
 			} catch (error) {
 				console.error("Failed to load prompts:", error);
 			}
