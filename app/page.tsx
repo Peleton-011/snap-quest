@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import PromptSetEditor from "./components/PromptSetEditor";
 import { Box, Typography, Grid, Button } from "@mui/material";
 import CameraModal from "./components/CameraModal";
 import db from "./services/db";
@@ -27,14 +28,18 @@ const App: React.FC = () => {
 	const [promptSets, setPromptSets] = useState<PromptSet[]>([
 		defaultPromptSet,
 	]);
+	const [showEditor, setShowEditor] = useState(false);
+	const [editSetId, setEditSetId] = useState<number | undefined>(undefined);
+	const [isCustomSet, setIsCustomSet] = useState(false);
+
+	const refreshPromptSets = async () => {
+		const data = await db.promptSets.toArray();
+		setPromptSets([defaultPromptSet, ...data]);
+	};
 
 	// Fetch prompt sets from the server
 	useEffect(() => {
-		const fetchPromptSets = async () => {
-			const data = await db.promptSets.toArray();
-			setPromptSets([defaultPromptSet, ...data]);
-		};
-		fetchPromptSets();
+		refreshPromptSets();
 	}, []);
 
 	// Load prompts dynamically from the server
@@ -42,6 +47,9 @@ const App: React.FC = () => {
 		const loadPrompts = async () => {
 			try {
 				if (!promptSet.id) return;
+				const record = await db.promptSets.get(Number(promptSet.id));
+				setIsCustomSet(record ? !record.isDefault : false);
+
 				const prompts = await db.prompts
 					.where("promptSetId")
 					.equals(Number(promptSet.id))
@@ -238,6 +246,18 @@ const App: React.FC = () => {
 		);
 	};
 
+	const deletePromptSet = async () => {
+		const setId = Number(promptSet.id);
+		await db.photos.where("promptSetId").equals(setId).delete();
+		await db.prompts.where("promptSetId").equals(setId).delete();
+		await db.promptSets.delete(setId);
+
+		const data = await db.promptSets.toArray();
+		setPromptSets([defaultPromptSet, ...data]);
+		setPromptSet(defaultPromptSet);
+		setTiles([]);
+	};
+
 	return (
 		<ThemeProvider theme={theme}>
 			<Box p={4}>
@@ -292,12 +312,45 @@ const App: React.FC = () => {
 					</select>
 					<Button
 						onClick={resetGrid}
-						variant="contained"
-						color="secondary"
+						variant="outlined"
+						color="primary"
 						disabled={!tiles.some((t) => !!t.image)}
+						style={{ marginBottom: "1rem" }}
 					>
 						Clear Images
 					</Button>
+					<Button
+						variant="contained"
+						onClick={() => {
+							setEditSetId(undefined);
+							setShowEditor(true);
+						}}
+						style={{ marginBottom: "1rem" }}
+					>
+						+ New Set
+					</Button>
+					{isCustomSet && (
+						<Button
+							variant="contained"
+							onClick={() => {
+								setEditSetId(Number(promptSet.id));
+								setShowEditor(true);
+							}}
+							style={{ marginBottom: "1rem" }}
+						>
+							Edit Set
+						</Button>
+					)}
+					{isCustomSet && (
+						<Button
+							onClick={deletePromptSet}
+							variant="contained"
+							color="error"
+							style={{ marginBottom: "1rem" }}
+						>
+							Delete Set
+						</Button>
+					)}
 				</Box>
 
 				{tiles.length > 0 && (
@@ -341,6 +394,17 @@ const App: React.FC = () => {
 							: "Download Images"}
 					</Button>
 				</Box>
+				{showEditor && (
+					<PromptSetEditor
+						editSetId={editSetId}
+						onClose={() => setShowEditor(false)}
+						onSaved={() => {
+							refreshPromptSets();
+							setPromptSet(defaultPromptSet);
+							setTiles([]);
+						}}
+					/>
+				)}
 			</Box>
 		</ThemeProvider>
 	);
