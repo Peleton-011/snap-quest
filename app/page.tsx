@@ -170,7 +170,7 @@ const App: React.FC = () => {
 					directory: Directory.Cache,
 				});
 				await Share.share({
-					title: "SnapQuest: " + promptSet.name,
+					title: "Share your snaps!",
 					url: fileResult.uri,
 				});
 			}
