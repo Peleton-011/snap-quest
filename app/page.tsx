@@ -12,6 +12,9 @@ import { ThemeProvider } from "@mui/material/styles";
 import theme from "./theme";
 import { PromptSet, Prompt, Tile } from "./types/types";
 import MosaicGrid from "./components/MosaicGrid";
+import { Filesystem, Directory } from "@capacitor/filesystem";
+import { Share } from "@capacitor/share";
+import isNative from "./services/platform";
 
 const defaultPromptSet: PromptSet = {
 	id: -1,
@@ -133,6 +136,18 @@ const App: React.FC = () => {
 		return getRandomSize(orientation);
 	};
 
+	function blobToBase64(blob: Blob): Promise<string> {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onloadend = () => {
+				const result = reader.result as string;
+				resolve(result.split(",")[1]); // strip data:...;base64, prefix
+			};
+			reader.onerror = reject;
+			reader.readAsDataURL(blob);
+		});
+	}
+
 	// Generate and download the PDF
 	const downloadPDF = async () => {
 		try {
@@ -146,6 +161,20 @@ const App: React.FC = () => {
 					height: tile.height,
 				})),
 			);
+
+			if (isNative()) {
+				const base64 = await blobToBase64(pdfBlob);
+				const fileResult = await Filesystem.writeFile({
+					path: "snapquest-bingo.pdf",
+					data: base64,
+					directory: Directory.Cache,
+				});
+				await Share.share({
+					title: "SnapQuest: " + promptSet.name,
+					url: fileResult.uri,
+				});
+			}
+			// In PC
 			const url = URL.createObjectURL(pdfBlob);
 			const link = document.createElement("a");
 			link.href = url;
