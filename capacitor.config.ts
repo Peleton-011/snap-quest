@@ -1,9 +1,9 @@
-import type { CapacitorConfig } from "@capacitor/cli";
+import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-	appId: "com.snapquest.app",
-	appName: "Snap Quest",
-	webDir: "out",
+  appId: 'com.snap_quest_pink.app',
+  appName: 'snap-quest',
+  webDir: 'out'
 };
 
 export default config;
