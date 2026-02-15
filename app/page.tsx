@@ -7,6 +7,8 @@ import CameraModal from "./components/CameraModal";
 import db from "./services/db";
 import { generatePDF } from "./services/pdfGenerator";
 import { downloadImagesAsZip } from "./services/zipImages";
+import { saveAndShareFile } from "./services/nativeExport";
+import isNative from "./services/platform";
 import "./app.css";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "./theme";
@@ -146,12 +148,17 @@ const App: React.FC = () => {
 					height: tile.height,
 				})),
 			);
-			const url = URL.createObjectURL(pdfBlob);
-			const link = document.createElement("a");
-			link.href = url;
-			link.download = "snapquest-bingo.pdf";
-			link.click();
-			URL.revokeObjectURL(url);
+
+			if (isNative()) {
+				await saveAndShareFile(pdfBlob, "snapquest-bingo.pdf", "application/pdf");
+			} else {
+				const url = URL.createObjectURL(pdfBlob);
+				const link = document.createElement("a");
+				link.href = url;
+				link.download = "snapquest-bingo.pdf";
+				link.click();
+				URL.revokeObjectURL(url);
+			}
 		} catch (error) {
 			console.error("Failed to generate PDF:", error);
 		} finally {
