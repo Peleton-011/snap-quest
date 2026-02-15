@@ -14,7 +14,7 @@ import { PromptSet, Prompt, Tile } from "./types/types";
 import MosaicGrid from "./components/MosaicGrid";
 
 const defaultPromptSet: PromptSet = {
-	id: undefined,
+	id: -1,
 	name: "Select...",
 };
 
