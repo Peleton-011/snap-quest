@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">Snap Quest</string>
-    <string name="title_activity_main">Snap Quest</string>
-    <string name="package_name">com.snapquest.app</string>
-    <string name="custom_url_scheme">com.snapquest.app</string>
-</resources>
