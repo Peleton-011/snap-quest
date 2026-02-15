@@ -7,8 +7,10 @@ import CameraModal from "./components/CameraModal";
 import db from "./services/db";
 import { generatePDF } from "./services/pdfGenerator";
 import { downloadImagesAsZip } from "./services/zipImages";
+import { generateStoryImage, generateCarouselImages } from "./services/cardGenerator";
 import { saveAndShareFile } from "./services/nativeExport";
 import isNative from "./services/platform";
+import { saveAs } from "file-saver";
 import "./app.css";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "./theme";
@@ -26,6 +28,8 @@ const App: React.FC = () => {
 	const [promptSet, setPromptSet] = useState<PromptSet>(defaultPromptSet); // Track the selected prompt set
 	const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 	const [isDownloadingImages, setIsDownloadingImages] = useState(false);
+	const [isGeneratingStory, setIsGeneratingStory] = useState(false);
+	const [isGeneratingCarousel, setIsGeneratingCarousel] = useState(false);
 	const [language, setLanguage] = useState("en");
 	const [promptSets, setPromptSets] = useState<PromptSet[]>([
 		defaultPromptSet,
@@ -175,6 +179,58 @@ const App: React.FC = () => {
 			console.error("Failed to download images:", error);
 		} finally {
 			setIsDownloadingImages(false);
+		}
+	};
+
+	// Share as a single story image
+	const shareStoryImage = async () => {
+		try {
+			setIsGeneratingStory(true);
+			const storyTitle = "SnapQuest: " + promptSet.name;
+			const blob = await generateStoryImage(tiles, storyTitle, language);
+
+			if (isNative()) {
+				await saveAndShareFile(blob, "snapquest-story.png", "image/png");
+			} else {
+				saveAs(blob, "snapquest-story.png");
+			}
+		} catch (error) {
+			console.error("Failed to generate story image:", error);
+		} finally {
+			setIsGeneratingStory(false);
+		}
+	};
+
+	// Share as carousel (one card per prompt)
+	const shareCarousel = async () => {
+		try {
+			setIsGeneratingCarousel(true);
+			const carouselTitle = "SnapQuest: " + promptSet.name;
+			const blobs = await generateCarouselImages(tiles, carouselTitle, language);
+
+			if (isNative()) {
+				// On native, zip them and share so the user gets all cards
+				const JSZip = (await import("jszip")).default;
+				const zip = new JSZip();
+				blobs.forEach((blob, i) => {
+					zip.file(`snapquest-card-${i + 1}.png`, blob);
+				});
+				const zipBlob = await zip.generateAsync({ type: "blob" });
+				await saveAndShareFile(zipBlob, "snapquest-cards.zip", "application/zip");
+			} else {
+				// On web, zip and download
+				const JSZip = (await import("jszip")).default;
+				const zip = new JSZip();
+				blobs.forEach((blob, i) => {
+					zip.file(`snapquest-card-${i + 1}.png`, blob);
+				});
+				const zipBlob = await zip.generateAsync({ type: "blob" });
+				saveAs(zipBlob, "snapquest-cards.zip");
+			}
+		} catch (error) {
+			console.error("Failed to generate carousel images:", error);
+		} finally {
+			setIsGeneratingCarousel(false);
 		}
 	};
 
@@ -382,6 +438,22 @@ const App: React.FC = () => {
 
 				{/* Fixed download buttons */}
 				<Box className="download-buttons">
+					<Button
+						variant="contained"
+						color="primary"
+						onClick={shareStoryImage}
+						disabled={isGeneratingStory || !tiles.some((t) => t.completed)}
+					>
+						{isGeneratingStory ? "Generating..." : "Share Story"}
+					</Button>
+					<Button
+						variant="contained"
+						color="primary"
+						onClick={shareCarousel}
+						disabled={isGeneratingCarousel || !tiles.some((t) => t.completed)}
+					>
+						{isGeneratingCarousel ? "Generating..." : "Share Cards"}
+					</Button>
 					<Button
 						variant="contained"
 						color="primary"
