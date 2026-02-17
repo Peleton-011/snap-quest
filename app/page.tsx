@@ -29,8 +29,7 @@ const App: React.FC = () => {
 	const [promptSets, setPromptSets] = useState<PromptSet[]>([
 		defaultPromptSet,
 	]);
-	const [showEditor, setShowEditor] = useState(false);
-	const [editSetId, setEditSetId] = useState<number | undefined>(undefined);
+    
 	const [isCustomSet, setIsCustomSet] = useState(false);
 
 	const refreshPromptSets = async () => {

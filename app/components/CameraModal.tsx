@@ -1,14 +1,17 @@
 import React, { useState } from "react";
-// import {
-// 	Box,
-// 	Button,
-// 	Dialog,
-// 	DialogActions,
-// 	DialogContent,
-// 	Typography,
-// } from "@mui/material";
-import { Button } from "@/components/ui/button"
-
+import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 import { Tile } from "@/app/types/types";
 
@@ -85,53 +88,54 @@ const CameraModal: React.FC<CameraModalProps> = ({
 
 	return (
 		<Dialog open onClose={onClose}>
+			<DialogTrigger asChild>
+				<Button>{label}</Button>
+			</DialogTrigger>
 			<DialogContent className="modal">
-				<Typography variant="h6">
+				<h6>
 					{tile.prompt.fullPrompt[language]}
-				</Typography>
-				<Box mt={2}>
+				</h6>
+				<div >
 					{preview && (
-						<Box>
+						<div>
 							<img
 								src={preview}
 								alt="Preview"
 								style={{ width: "100%", borderRadius: "4px" }}
 							/>
-							<Box
-								display="flex"
-								justifyContent="space-between"
-								mt={2}
+							<div
 							>
 								<Button
-									variant="outlined"
 									color="secondary"
 									onClick={handleDelete}
 								>
 									Delete Image
 								</Button>
-							</Box>
-						</Box>
+							</div>
+						</div>
 					)}
-				</Box>
+				</div>
+				<DialogFooter className="modal">
+					{!preview && (
+						<Button  >
+							Upload or Take a Photo
+							{isNative() ? (
+								<Button onClick={handleNativeCapture}>
+									Close
+								</Button>
+							) : (
+								<input
+									type="file"
+									accept="image/*"
+									hidden
+									onChange={handleCapture}
+								/>
+							)}
+						</Button>
+					)}{" "}
+					<Button onClick={onClose}>Close</Button>
+				</DialogFooter>
 			</DialogContent>
-			<DialogActions className="modal">
-				{!preview && (
-					<Button variant="contained" component="label">
-						Upload or Take a Photo
-						{isNative() ? (
-							<Button onClick={handleNativeCapture}>Close</Button>
-						) : (
-							<input
-								type="file"
-								accept="image/*"
-								hidden
-								onChange={handleCapture}
-							/>
-						)}
-					</Button>
-				)}{" "}
-				<Button onClick={onClose}>Close</Button>
-			</DialogActions>
 		</Dialog>
 	);
 };
