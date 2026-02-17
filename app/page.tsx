@@ -6,7 +6,7 @@ import CameraModal from "./components/CameraModal";
 import db from "./services/db";
 import { generatePDF } from "./services/pdfGenerator";
 import { downloadImagesAsZip } from "./services/zipImages";
-import "./app.css";
+// import "./app.css";
 import { PromptSet, Prompt, Tile } from "./types/types";
 import MosaicGrid from "./components/MosaicGrid";
 import { Filesystem, Directory } from "@capacitor/filesystem";
