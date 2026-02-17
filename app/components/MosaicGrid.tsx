@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { Box, Button, Typography } from "@mui/material";
+// import { Box, Button, Typography } from "@mui/material";
 import { Prompt, Tile } from "@/app/types/types";
 
 const MosaicGrid = ({

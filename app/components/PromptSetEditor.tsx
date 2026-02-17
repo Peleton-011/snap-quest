@@ -1,26 +1,39 @@
 import React, { useState, useEffect } from "react";
+// import {
+// 	Box,
+// 	Button,
+// 	Dialog,
+// 	DialogActions,
+// 	DialogContent,
+// 	DialogTitle,
+// 	TextField,
+// 	Typography,
+// } from "@mui/material";
+import { Button } from "@/components/ui/button";
 import {
-	Box,
-	Button,
 	Dialog,
-	DialogActions,
+	DialogClose,
 	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
 	DialogTitle,
-	TextField,
-	Typography,
-} from "@mui/material";
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 import db from "@/app/services/db";
 
 interface PromptSetEditorProps {
 	editSetId?: number; // if provided, edit mode
-	onClose: () => void;
+	label: string;
 	onSaved: () => void;
 }
 
 const PromptSetEditor: React.FC<PromptSetEditorProps> = ({
 	editSetId,
-	onClose,
+	label,
 	onSaved,
 }) => {
 	const [name, setName] = useState("");
@@ -45,8 +58,14 @@ const PromptSetEditor: React.FC<PromptSetEditorProps> = ({
 			if (existing.length > 0) {
 				setPrompts(
 					existing.map((p) => ({
-						full: p.fullPrompt.en || Object.values(p.fullPrompt)[0] || "",
-						short: p.shortPrompt.en || Object.values(p.shortPrompt)[0] || "",
+						full:
+							p.fullPrompt.en ||
+							Object.values(p.fullPrompt)[0] ||
+							"",
+						short:
+							p.shortPrompt.en ||
+							Object.values(p.shortPrompt)[0] ||
+							"",
 					})),
 				);
 			}
@@ -55,13 +74,18 @@ const PromptSetEditor: React.FC<PromptSetEditorProps> = ({
 		load();
 	}, [editSetId]);
 
-	const updatePrompt = (index: number, field: "full" | "short", value: string) => {
+	const updatePrompt = (
+		index: number,
+		field: "full" | "short",
+		value: string,
+	) => {
 		setPrompts((prev) =>
 			prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)),
 		);
 	};
 
-	const addPrompt = () => setPrompts((prev) => [...prev, { full: "", short: "" }]);
+	const addPrompt = () =>
+		setPrompts((prev) => [...prev, { full: "", short: "" }]);
 
 	const removePrompt = (index: number) => {
 		setPrompts((prev) => prev.filter((_, i) => i !== index));
@@ -96,90 +120,99 @@ const PromptSetEditor: React.FC<PromptSetEditorProps> = ({
 				isDefault: false,
 			});
 			await db.prompts.bulkAdd(
-				promptRecords.map((p) => ({ ...p, promptSetId: setId as number })),
+				promptRecords.map((p) => ({
+					...p,
+					promptSetId: setId as number,
+				})),
 			);
 		}
 
 		onSaved();
-		onClose();
 	};
 
 	if (!loaded) return null;
 
 	return (
-		<Dialog open onClose={onClose} maxWidth="md" fullWidth>
-			<DialogTitle>{editSetId ? "Edit" : "Create"} Prompt Set</DialogTitle>
-			<DialogContent>
-				<TextField
-					label="Name"
-					fullWidth
-					value={name}
-					onChange={(e) => setName(e.target.value)}
-					sx={{ mb: 2, mt: 1 }}
-				/>
-				<TextField
-					label="Description"
-					fullWidth
-					value={description}
-					onChange={(e) => setDescription(e.target.value)}
-					sx={{ mb: 3 }}
-				/>
+		<Dialog>
+			<form method="dialog" onSubmit={handleSave}>
+				<DialogTrigger asChild>
+					<Button>{label}</Button>
+				</DialogTrigger>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							{editSetId ? "Edit" : "Create"} Prompt Set
+						</DialogTitle>
+						{/* I could put a DIalogDescriptoion here */}
+					</DialogHeader>
+					<Label htmlFor="name">Name</Label>
+					<Input
+						id="name"
+						value={name}
+						onChange={(e) => setName(e.target.value)}
+					/>
+					<Label htmlFor="desc">Description</Label>
+					<Input
+						id="desc"
+						value={description}
+						onChange={(e) => setDescription(e.target.value)}
+					/>
 
-				<Typography variant="h6" sx={{ mb: 1 }}>
-					Prompts
-				</Typography>
+					<h6>Prompts</h6>
 
-				{prompts.map((prompt, idx) => (
-					<Box
-						key={idx}
-						sx={{
-							mb: 2,
-							p: 2,
-							border: "1px solid",
-							borderColor: "divider",
-							borderRadius: 1,
-						}}
-					>
-						<Box display="flex" justifyContent="space-between" alignItems="center">
-							<Typography variant="subtitle2">Prompt {idx + 1}</Typography>
-							{prompts.length > 1 && (
-								<Button size="small" color="error" onClick={() => removePrompt(idx)}>
-									Remove
-								</Button>
-							)}
-						</Box>
-						<TextField
-							label="Prompt"
-							fullWidth
-							size="small"
-							value={prompt.full}
-							onChange={(e) => updatePrompt(idx, "full", e.target.value)}
-							sx={{ mb: 1, mt: 1 }}
-						/>
-						<TextField
-							label="Short label (optional — defaults to full prompt)"
-							fullWidth
-							size="small"
-							value={prompt.short}
-							onChange={(e) => updatePrompt(idx, "short", e.target.value)}
-						/>
-					</Box>
-				))}
+					{prompts.map((prompt, idx) => (
+						<div key={idx}>
+							<div>
+								<h4>Prompt {idx + 1}</h4>
+								{prompts.length > 1 && (
+									<Button
+										color="error"
+										onClick={() => removePrompt(idx)}
+									>
+										Remove
+									</Button>
+								)}
+							</div>
+							<Label htmlFor="prompt">Prompt</Label>
+							<Input
+								id="prompt"
+								value={prompt.full}
+								onChange={(e) =>
+									updatePrompt(idx, "full", e.target.value)
+								}
+							/>
 
-				<Button variant="outlined" onClick={addPrompt}>
-					+ Add Prompt
-				</Button>
-			</DialogContent>
-			<DialogActions>
-				<Button onClick={onClose}>Cancel</Button>
-				<Button
-					variant="contained"
-					onClick={handleSave}
-					disabled={!name.trim() || !prompts.some((p) => p.full.trim())}
-				>
-					Save
-				</Button>
-			</DialogActions>
+							<Label htmlFor="short">
+								Short Label (optional — defaults to full prompt)
+							</Label>
+							<Input
+								id="short"
+								value={prompt.short}
+								onChange={(e) =>
+									updatePrompt(idx, "short", e.target.value)
+								}
+							/>
+						</div>
+					))}
+
+					<Button onClick={addPrompt}>+ Add Prompt</Button>
+                    
+					<DialogFooter>
+						<DialogClose asChild>
+							<Button>Cancel</Button>
+						</DialogClose>
+						<Button
+							type="submit"
+							disabled={
+								!name.trim() ||
+								!prompts.some((p) => p.full.trim())
+							}
+						>
+							Save
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</form>
 		</Dialog>
 	);
 };

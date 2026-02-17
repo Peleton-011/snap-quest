@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import {
-	Box,
-	Button,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	Typography,
-} from "@mui/material";
+// import {
+// 	Box,
+// 	Button,
+// 	Dialog,
+// 	DialogActions,
+// 	DialogContent,
+// 	Typography,
+// } from "@mui/material";
+import { Button } from "@/components/ui/button"
+
 
 import { Tile } from "@/app/types/types";
 

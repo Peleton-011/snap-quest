@@ -1,20 +1,18 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import PromptSetEditor from "./components/PromptSetEditor";
-import { Box, Typography, Grid, Button } from "@mui/material";
+// import {  Grid, Button } from "@mui/material";
 import CameraModal from "./components/CameraModal";
 import db from "./services/db";
 import { generatePDF } from "./services/pdfGenerator";
 import { downloadImagesAsZip } from "./services/zipImages";
 import "./app.css";
-import { ThemeProvider } from "@mui/material/styles";
-import theme from "./theme";
 import { PromptSet, Prompt, Tile } from "./types/types";
 import MosaicGrid from "./components/MosaicGrid";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import { Share } from "@capacitor/share";
 import isNative from "./services/platform";
+import { Button } from "@/components/ui/button";
 
 const defaultPromptSet: PromptSet = {
 	id: -1,
@@ -288,145 +286,67 @@ const App: React.FC = () => {
 	};
 
 	return (
-		<ThemeProvider theme={theme}>
-			<Box p={4}>
-				<Typography variant="h3" gutterBottom className=" title">
-					SnapQuest
-				</Typography>
+		<div>
+			<h3 className=" title">SnapQuest</h3>
 
-				{/* Dropdown for prompt set selection */}
+			{/* Dropdown for prompt set selection */}
 
-				<Box
-					mb={2}
+			<div
+				style={{
+					display: "flex",
+					gap: "10px",
+					alignItems: "center",
+				}}
+			>
+				<h4 className="prompt-set-title">
+					{promptSet.name === "Select..."
+						? "Select a Prompt Set:"
+						: promptSet.name.slice(0, 1).toUpperCase() +
+							promptSet.name.slice(1)}
+				</h4>
+				<select
+					value={promptSet.name}
+					onChange={(e) =>
+						setPromptSet(
+							promptSets.find(
+								(promptSet) =>
+									promptSet.id === Number(e.target.value),
+							) || promptSets[0],
+						)
+					}
 					style={{
-						display: "flex",
-						gap: "10px",
-						alignItems: "center",
+						padding: "0.25rem",
+						marginTop: "0.25rem",
+						marginBottom: "1rem",
 					}}
 				>
-					<Typography
-						variant="h4"
-						gutterBottom
-						className="prompt-set-title"
-					>
-						{promptSet.name === "Select..."
-							? "Select a Prompt Set:"
-							: promptSet.name.slice(0, 1).toUpperCase() +
-								promptSet.name.slice(1)}
-					</Typography>
-					<select
-						value={promptSet.name}
-						onChange={(e) =>
-							setPromptSet(
-								promptSets.find(
-									(promptSet) =>
-										promptSet.id === Number(e.target.value),
-								) || promptSets[0],
-							)
-						}
-						style={{
-							padding: "0.25rem",
-							marginTop: "0.25rem",
-							marginBottom: "1rem",
-						}}
-					>
-						{promptSets.map((promptSet) => (
-							<option
-								value={Number(promptSet.id)}
-								key={promptSet.id}
-							>
-								{promptSet.name}
-							</option>
-						))}
-					</select>
-					<Button
-						onClick={resetGrid}
-						variant="outlined"
-						color="primary"
-						disabled={!tiles.some((t) => !!t.image)}
-						style={{ marginBottom: "1rem" }}
-					>
-						Clear Images
-					</Button>
-					<Button
-						variant="contained"
-						onClick={() => {
-							setEditSetId(undefined);
-							setShowEditor(true);
-						}}
-						style={{ marginBottom: "1rem" }}
-					>
-						+ New Set
-					</Button>
-					{isCustomSet && (
-						<Button
-							variant="contained"
-							onClick={() => {
-								setEditSetId(Number(promptSet.id));
-								setShowEditor(true);
-							}}
-							style={{ marginBottom: "1rem" }}
-						>
-							Edit Set
-						</Button>
-					)}
-					{isCustomSet && (
-						<Button
-							onClick={deletePromptSet}
-							variant="contained"
-							color="error"
-							style={{ marginBottom: "1rem" }}
-						>
-							Delete Set
-						</Button>
-					)}
-				</Box>
-
-				{tiles.length > 0 && (
-					<MosaicGrid
-						tiles={tiles}
-						onTileClick={(tile) => setActiveTile(tile)}
-						language={language}
-					/>
-				)}
-
-				{/* Modal for capturing/uploading images */}
-				{activeTile && (
-					<CameraModal
-						tile={activeTile}
-						onClose={() => setActiveTile(null)}
-						onSave={(id, image, orientation) =>
-							markTileCompleted(id, image, orientation)
-						}
-						language={language}
-					/>
-				)}
-
-				{/* Fixed download buttons */}
-				<Box className="download-buttons">
-					<Button
-						variant="contained"
-						color="primary"
-						onClick={downloadPDF}
-						disabled={isGeneratingPDF}
-					>
-						{isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
-					</Button>
-					<Button
-						variant="contained"
-						color="secondary"
-						onClick={downloadImages}
-						disabled={isDownloadingImages}
-					>
-						{isDownloadingImages
-							? "Downloading..."
-							: "Download Images"}
-					</Button>
-				</Box>
-				{showEditor && (
+					{promptSets.map((promptSet) => (
+						<option value={Number(promptSet.id)} key={promptSet.id}>
+							{promptSet.name}
+						</option>
+					))}
+				</select>
+				<Button
+					onClick={resetGrid}
+					color="primary"
+					disabled={!tiles.some((t) => !!t.image)}
+					style={{ marginBottom: "1rem" }}
+				>
+					Clear Images
+				</Button>
+				<PromptSetEditor
+					editSetId={undefined}
+					label="+ New Set"
+					onSaved={() => {
+						refreshPromptSets();
+						setPromptSet(defaultPromptSet);
+						setTiles([]);
+					}}
+				/>
+				{isCustomSet && (
 					<PromptSetEditor
-						editSetId={editSetId}
-						onClose={() => setShowEditor(false)}
+						editSetId={Number(promptSet.id)}
+						label="Edit Set"
 						onSaved={() => {
 							refreshPromptSets();
 							setPromptSet(defaultPromptSet);
@@ -434,8 +354,55 @@ const App: React.FC = () => {
 						}}
 					/>
 				)}
-			</Box>
-		</ThemeProvider>
+				{isCustomSet && (
+					<Button
+						onClick={deletePromptSet}
+						color="error"
+						style={{ marginBottom: "1rem" }}
+					>
+						Delete Set
+					</Button>
+				)}
+			</div>
+
+			{tiles.length > 0 && (
+				<MosaicGrid
+					tiles={tiles}
+					onTileClick={(tile) => setActiveTile(tile)}
+					language={language}
+				/>
+			)}
+
+			{/* Modal for capturing/uploading images */}
+			{activeTile && (
+				<CameraModal
+					tile={activeTile}
+					onClose={() => setActiveTile(null)}
+					onSave={(id, image, orientation) =>
+						markTileCompleted(id, image, orientation)
+					}
+					language={language}
+				/>
+			)}
+
+			{/* Fixed download buttons */}
+			<div className="download-buttons">
+				<Button
+					color="primary"
+					onClick={downloadPDF}
+					disabled={isGeneratingPDF}
+				>
+					{isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
+				</Button>
+				<Button
+					color="secondary"
+					onClick={downloadImages}
+					disabled={isDownloadingImages}
+				>
+					{isDownloadingImages ? "Downloading..." : "Download Images"}
+				</Button>
+			</div>
+		</div>
 	);
 };
 
