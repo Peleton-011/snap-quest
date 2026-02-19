@@ -1,8 +1,6 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import PromptSetEditor from "./components/PromptSetEditor";
-import { Box, Typography, Grid, Button } from "@mui/material";
 import CameraModal from "./components/CameraModal";
 import db from "./services/db";
 import { generatePDF } from "./services/pdfGenerator";
@@ -11,11 +9,11 @@ import { generateStoryImage, generateCarouselImages } from "./services/cardGener
 import { saveAndShareFile } from "./services/nativeExport";
 import isNative from "./services/platform";
 import { saveAs } from "file-saver";
-import "./app.css";
-import { ThemeProvider } from "@mui/material/styles";
-import theme from "./theme";
 import { PromptSet, Prompt, Tile } from "./types/types";
 import MosaicGrid from "./components/MosaicGrid";
+import { Filesystem, Directory } from "@capacitor/filesystem";
+import { Share } from "@capacitor/share";
+import { Button } from "@/components/ui/button";
 
 const defaultPromptSet: PromptSet = {
 	id: -1,
@@ -24,8 +22,20 @@ const defaultPromptSet: PromptSet = {
 
 const App: React.FC = () => {
 	const [tiles, setTiles] = useState<Tile[]>([]);
-	const [activeTile, setActiveTile] = useState<Tile | null>(null);
-	const [promptSet, setPromptSet] = useState<PromptSet>(defaultPromptSet); // Track the selected prompt set
+	const [activeTile, setActiveTile] = useState<Tile | null>({
+		id: -1,
+		prompt: {
+			id: -1,
+			fullPrompt: { en: "pooperty", fr: "poopert" },
+			shortPrompt: { en: "pooperty", fr: "poopert" },
+			promptSetId: -1,
+		},
+		completed: false,
+		image: "https://contenthub-static.grammarly.com/blog/wp-content/uploads/2023/11/Cool_Words.png",
+		width: 0,
+		height: 0,
+	});
+	const [promptSet, setPromptSet] = useState<PromptSet>(defaultPromptSet);
 	const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 	const [isDownloadingImages, setIsDownloadingImages] = useState(false);
 	const [isGeneratingStory, setIsGeneratingStory] = useState(false);
@@ -34,8 +44,7 @@ const App: React.FC = () => {
 	const [promptSets, setPromptSets] = useState<PromptSet[]>([
 		defaultPromptSet,
 	]);
-	const [showEditor, setShowEditor] = useState(false);
-	const [editSetId, setEditSetId] = useState<number | undefined>(undefined);
+
 	const [isCustomSet, setIsCustomSet] = useState(false);
 
 	const refreshPromptSets = async () => {
@@ -89,7 +98,7 @@ const App: React.FC = () => {
 								prompt,
 								completed: !!blob,
 								image: blobUrl,
-								width: size.width, // Default mosaic size
+								width: size.width,
 								height: size.height,
 							};
 						}),
@@ -139,6 +148,18 @@ const App: React.FC = () => {
 		return getRandomSize(orientation);
 	};
 
+	function blobToBase64(blob: Blob): Promise<string> {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onloadend = () => {
+				const result = reader.result as string;
+				resolve(result.split(",")[1]); // strip data:...;base64, prefix
+			};
+			reader.onerror = reject;
+			reader.readAsDataURL(blob);
+		});
+	}
+
 	// Generate and download the PDF
 	const downloadPDF = async () => {
 		try {
@@ -154,7 +175,16 @@ const App: React.FC = () => {
 			);
 
 			if (isNative()) {
-				await saveAndShareFile(pdfBlob, "snapquest-bingo.pdf", "application/pdf");
+				const base64 = await blobToBase64(pdfBlob);
+				const fileResult = await Filesystem.writeFile({
+					path: "snapquest-bingo.pdf",
+					data: base64,
+					directory: Directory.Cache,
+				});
+				await Share.share({
+					title: "Share your snaps!",
+					url: fileResult.uri,
+				});
 			} else {
 				const url = URL.createObjectURL(pdfBlob);
 				const link = document.createElement("a");
@@ -208,23 +238,16 @@ const App: React.FC = () => {
 			const carouselTitle = "SnapQuest: " + promptSet.name;
 			const blobs = await generateCarouselImages(tiles, carouselTitle, language);
 
+			const JSZip = (await import("jszip")).default;
+			const zip = new JSZip();
+			blobs.forEach((blob, i) => {
+				zip.file(`snapquest-card-${i + 1}.png`, blob);
+			});
+			const zipBlob = await zip.generateAsync({ type: "blob" });
+
 			if (isNative()) {
-				// On native, zip them and share so the user gets all cards
-				const JSZip = (await import("jszip")).default;
-				const zip = new JSZip();
-				blobs.forEach((blob, i) => {
-					zip.file(`snapquest-card-${i + 1}.png`, blob);
-				});
-				const zipBlob = await zip.generateAsync({ type: "blob" });
 				await saveAndShareFile(zipBlob, "snapquest-cards.zip", "application/zip");
 			} else {
-				// On web, zip and download
-				const JSZip = (await import("jszip")).default;
-				const zip = new JSZip();
-				blobs.forEach((blob, i) => {
-					zip.file(`snapquest-card-${i + 1}.png`, blob);
-				});
-				const zipBlob = await zip.generateAsync({ type: "blob" });
 				saveAs(zipBlob, "snapquest-cards.zip");
 			}
 		} catch (error) {
@@ -289,14 +312,13 @@ const App: React.FC = () => {
 					: tile,
 			),
 		);
-		setActiveTile(null);
 	};
 
 	const resetGrid = async () => {
 		await db.photos
 			.where("promptSetId")
 			.equals(Number(promptSet.id))
-			.delete(); // "bulkDelete")bulkDelete(tiles.map((t) => t.id));
+			.delete();
 		setTiles((prevTiles) =>
 			prevTiles.map((tile) => ({
 				...tile,
@@ -322,161 +344,67 @@ const App: React.FC = () => {
 	};
 
 	return (
-		<ThemeProvider theme={theme}>
-			<Box p={4}>
-				<Typography variant="h3" gutterBottom className=" title">
-					SnapQuest
-				</Typography>
+		<div>
+			<h3 className=" title">SnapQuest</h3>
 
-				{/* Dropdown for prompt set selection */}
+			{/* Dropdown for prompt set selection */}
 
-				<Box
-					mb={2}
+			<div
+				style={{
+					display: "flex",
+					gap: "10px",
+					alignItems: "center",
+				}}
+			>
+				<h4 className="prompt-set-title">
+					{promptSet.name === "Select..."
+						? "Select a Prompt Set:"
+						: promptSet.name.slice(0, 1).toUpperCase() +
+							promptSet.name.slice(1)}
+				</h4>
+				<select
+					value={promptSet.name}
+					onChange={(e) =>
+						setPromptSet(
+							promptSets.find(
+								(promptSet) =>
+									promptSet.id === Number(e.target.value),
+							) || promptSets[0],
+						)
+					}
 					style={{
-						display: "flex",
-						gap: "10px",
-						alignItems: "center",
+						padding: "0.25rem",
+						marginTop: "0.25rem",
+						marginBottom: "1rem",
 					}}
 				>
-					<Typography
-						variant="h4"
-						gutterBottom
-						className="prompt-set-title"
-					>
-						{promptSet.name === "Select..."
-							? "Select a Prompt Set:"
-							: promptSet.name.slice(0, 1).toUpperCase() +
-								promptSet.name.slice(1)}
-					</Typography>
-					<select
-						value={promptSet.name}
-						onChange={(e) =>
-							setPromptSet(
-								promptSets.find(
-									(promptSet) =>
-										promptSet.id === Number(e.target.value),
-								) || promptSets[0],
-							)
-						}
-						style={{
-							padding: "0.25rem",
-							marginTop: "0.25rem",
-							marginBottom: "1rem",
-						}}
-					>
-						{promptSets.map((promptSet) => (
-							<option
-								value={Number(promptSet.id)}
-								key={promptSet.id}
-							>
-								{promptSet.name}
-							</option>
-						))}
-					</select>
-					<Button
-						onClick={resetGrid}
-						variant="outlined"
-						color="primary"
-						disabled={!tiles.some((t) => !!t.image)}
-						style={{ marginBottom: "1rem" }}
-					>
-						Clear Images
-					</Button>
-					<Button
-						variant="contained"
-						onClick={() => {
-							setEditSetId(undefined);
-							setShowEditor(true);
-						}}
-						style={{ marginBottom: "1rem" }}
-					>
-						+ New Set
-					</Button>
-					{isCustomSet && (
-						<Button
-							variant="contained"
-							onClick={() => {
-								setEditSetId(Number(promptSet.id));
-								setShowEditor(true);
-							}}
-							style={{ marginBottom: "1rem" }}
-						>
-							Edit Set
-						</Button>
-					)}
-					{isCustomSet && (
-						<Button
-							onClick={deletePromptSet}
-							variant="contained"
-							color="error"
-							style={{ marginBottom: "1rem" }}
-						>
-							Delete Set
-						</Button>
-					)}
-				</Box>
-
-				{tiles.length > 0 && (
-					<MosaicGrid
-						tiles={tiles}
-						onTileClick={(tile) => setActiveTile(tile)}
-						language={language}
-					/>
-				)}
-
-				{/* Modal for capturing/uploading images */}
-				{activeTile && (
-					<CameraModal
-						tile={activeTile}
-						onClose={() => setActiveTile(null)}
-						onSave={(id, image, orientation) =>
-							markTileCompleted(id, image, orientation)
-						}
-						language={language}
-					/>
-				)}
-
-				{/* Fixed download buttons */}
-				<Box className="download-buttons">
-					<Button
-						variant="contained"
-						color="primary"
-						onClick={shareStoryImage}
-						disabled={isGeneratingStory || !tiles.some((t) => t.completed)}
-					>
-						{isGeneratingStory ? "Generating..." : "Share Story"}
-					</Button>
-					<Button
-						variant="contained"
-						color="primary"
-						onClick={shareCarousel}
-						disabled={isGeneratingCarousel || !tiles.some((t) => t.completed)}
-					>
-						{isGeneratingCarousel ? "Generating..." : "Share Cards"}
-					</Button>
-					<Button
-						variant="contained"
-						color="primary"
-						onClick={downloadPDF}
-						disabled={isGeneratingPDF}
-					>
-						{isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
-					</Button>
-					<Button
-						variant="contained"
-						color="secondary"
-						onClick={downloadImages}
-						disabled={isDownloadingImages}
-					>
-						{isDownloadingImages
-							? "Downloading..."
-							: "Download Images"}
-					</Button>
-				</Box>
-				{showEditor && (
+					{promptSets.map((promptSet) => (
+						<option value={Number(promptSet.id)} key={promptSet.id}>
+							{promptSet.name}
+						</option>
+					))}
+				</select>
+				<Button
+					onClick={resetGrid}
+					color="primary"
+					disabled={!tiles.some((t) => !!t.image)}
+					style={{ marginBottom: "1rem" }}
+				>
+					Clear Images
+				</Button>
+				<PromptSetEditor
+					editSetId={undefined}
+					label="+ New Set"
+					onSaved={() => {
+						refreshPromptSets();
+						setPromptSet(defaultPromptSet);
+						setTiles([]);
+					}}
+				/>
+				{isCustomSet && (
 					<PromptSetEditor
-						editSetId={editSetId}
-						onClose={() => setShowEditor(false)}
+						editSetId={Number(promptSet.id)}
+						label="Edit Set"
 						onSaved={() => {
 							refreshPromptSets();
 							setPromptSet(defaultPromptSet);
@@ -484,8 +412,59 @@ const App: React.FC = () => {
 						}}
 					/>
 				)}
-			</Box>
-		</ThemeProvider>
+				{isCustomSet && (
+					<Button
+						onClick={deletePromptSet}
+						color="error"
+						style={{ marginBottom: "1rem" }}
+					>
+						Delete Set
+					</Button>
+				)}
+			</div>
+
+			{tiles.length > 0 && (
+				<MosaicGrid
+					tiles={tiles}
+					onSave={(id, image, orientation) =>
+						markTileCompleted(id, image, orientation)
+					}
+					language={language}
+				/>
+			)}
+
+			{/* Fixed download buttons */}
+			<div className="download-buttons">
+				<Button
+					color="primary"
+					onClick={shareStoryImage}
+					disabled={isGeneratingStory || !tiles.some((t) => t.completed)}
+				>
+					{isGeneratingStory ? "Generating..." : "Share Story"}
+				</Button>
+				<Button
+					color="primary"
+					onClick={shareCarousel}
+					disabled={isGeneratingCarousel || !tiles.some((t) => t.completed)}
+				>
+					{isGeneratingCarousel ? "Generating..." : "Share Cards"}
+				</Button>
+				<Button
+					color="primary"
+					onClick={downloadPDF}
+					disabled={isGeneratingPDF}
+				>
+					{isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
+				</Button>
+				<Button
+					color="secondary"
+					onClick={downloadImages}
+					disabled={isDownloadingImages}
+				>
+					{isDownloadingImages ? "Downloading..." : "Download Images"}
+				</Button>
+			</div>
+		</div>
 	);
 };
 

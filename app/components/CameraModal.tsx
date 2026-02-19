@@ -1,12 +1,19 @@
 import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
-	Box,
-	Button,
 	Dialog,
-	DialogActions,
+	DialogClose,
 	DialogContent,
-	Typography,
-} from "@mui/material";
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import ImageCard from "@/components/ui/image-card-btn";
+import defaultImg from "../assets/defaultImg.svg";
 
 import { Tile } from "@/app/types/types";
 
@@ -15,7 +22,6 @@ import isNative from "../services/platform";
 
 interface CameraModalProps {
 	tile: Tile;
-	onClose: () => void;
 	onSave: (
 		id: number,
 		image: Blob | null,
@@ -26,11 +32,26 @@ interface CameraModalProps {
 
 const CameraModal: React.FC<CameraModalProps> = ({
 	tile,
-	onClose,
 	onSave,
 	language,
 }) => {
 	const [preview, setPreview] = useState<string | null>(tile.image);
+
+	// Calculate grid layout properties for a tile
+	const getTileStyle = (tile: Tile) => {
+		if (!tile.image) {
+			return {
+				gridColumn: "span 1",
+				gridRow: "span 1",
+			};
+		}
+
+		return {
+			gridColumn: `span ${tile.width || 1}`,
+			gridRow: `span ${tile.height || 1}`,
+			transition: "all 0.3s ease-in-out",
+		};
+	};
 
 	const determineOrientation = (src: string): "landscape" | "portrait" => {
 		// Determine orientation based on image dimensions
@@ -82,54 +103,92 @@ const CameraModal: React.FC<CameraModalProps> = ({
 	};
 
 	return (
-		<Dialog open onClose={onClose}>
-			<DialogContent className="modal">
-				<Typography variant="h6">
-					{tile.prompt.fullPrompt[language]}
-				</Typography>
-				<Box mt={2}>
-					{preview && (
-						<Box>
-							<img
-								src={preview}
-								alt="Preview"
-								style={{ width: "100%", borderRadius: "4px" }}
-							/>
-							<Box
-								display="flex"
-								justifyContent="space-between"
-								mt={2}
-							>
-								<Button
-									variant="outlined"
-									color="secondary"
-									onClick={handleDelete}
-								>
-									Delete Image
-								</Button>
-							</Box>
-						</Box>
-					)}
-				</Box>
-			</DialogContent>
-			<DialogActions className="modal">
-				{!preview && (
-					<Button variant="contained" component="label">
-						Upload or Take a Photo
-						{isNative() ? (
-							<Button onClick={handleNativeCapture}>Close</Button>
-						) : (
-							<input
-								type="file"
-								accept="image/*"
-								hidden
-								onChange={handleCapture}
-							/>
+		<Dialog>
+			<form
+				method="dialog"
+				style={{
+					...getTileStyle(tile),
+					position: "relative",
+                    padding: "10px",
+				}}
+			>
+				<DialogTrigger
+					asChild
+					style={{
+						padding: "10px",
+					}}
+				>
+					<ImageCard
+						variant="button"
+                        height={tile.height || 1}
+                        width={tile.width || 1}
+						caption={tile.prompt.shortPrompt[language]}
+						imageUrl={preview || defaultImg.src}
+					></ImageCard>
+					{/* <Button asChild>
+						<ImageCard
+							caption={label}
+							imageUrl={preview || ""}
+						></ImageCard>
+					</Button> */}
+				</DialogTrigger>
+				<DialogContent className="modal">
+					<DialogHeader>
+						<DialogTitle>
+							{tile.prompt.fullPrompt[language]}
+						</DialogTitle>
+					</DialogHeader>
+					<div>
+						{preview && (
+							<div>
+								<img
+									src={preview}
+									alt="Preview"
+									style={{
+										width: "100%",
+										borderRadius: "4px",
+									}}
+								/>
+								<div>
+									<Button
+										color="secondary"
+										onClick={handleDelete}
+									>
+										Delete Image
+									</Button>
+								</div>
+							</div>
 						)}
-					</Button>
-				)}{" "}
-				<Button onClick={onClose}>Close</Button>
-			</DialogActions>
+					</div>
+					<DialogFooter className="modal">
+						{!preview && (
+							<div>
+								{isNative() ? (
+									<Button onClick={handleNativeCapture}>
+										Upload or Take a Photo
+									</Button>
+								) : (
+									<Button>
+										<Label htmlFor="file">
+											Upload or Take a Photo
+										</Label>
+										<input
+											id="file"
+											type="file"
+											accept="image/*"
+											hidden
+											onChange={handleCapture}
+										/>
+									</Button>
+								)}
+							</div>
+						)}{" "}
+						<DialogClose asChild>
+							<Button>Close</Button>
+						</DialogClose>
+					</DialogFooter>
+				</DialogContent>
+			</form>
 		</Dialog>
 	);
 };
