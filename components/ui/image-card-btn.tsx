@@ -38,17 +38,26 @@ export default function ImageCard({
 	VariantProps<typeof imageCardVariants> & {
 		asChild?: boolean;
 	}) {
-        function getRatio(width: string, height: string) {
-            const denominator = parseInt(width) * 4;
-            const numerator = parseInt(height) * denominator - parseInt(width);
+	function getRatio(width: string, height: string) {
+		const numerator = parseInt(width) * 4;
+		const denominator = parseInt(height) * 4 - 1;
 
-            return "aspect-" + numerator + "/" + denominator;
-        }
+		return "" + numerator + "/" + denominator;
+	}
+	function getWidth(width: string) {
+		return parseInt(width) * 250 + (parseInt(width) - 1) * 30 + "px";
+	}
 	return (
 		<button {...props}>
-			<figure className={cn(imageCardVariants({ variant, className }))}>
+			<figure
+				className={cn(imageCardVariants({ variant, className }))}
+				style={{ width: getWidth(width || "1") }}
+			>
 				<img
-					className={"w-full object-cover " + getRatio(width || "1", height || "1") + " hover:scale-105"}
+					className={"w-full object-cover"}
+					style={{
+						aspectRatio: getRatio(width || "1", height || "1"),
+					}}
 					src={imageUrl}
 					alt="image"
 				/>
