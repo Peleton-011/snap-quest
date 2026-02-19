@@ -1,3 +1,3 @@
-const isNative = () => typeof (window as any).Capacitor !== 'undefined';
+const isNative = () => (window as any).Capacitor?.isNativePlatform?.() === true;
 
 export default isNative;
