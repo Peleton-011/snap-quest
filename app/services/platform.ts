@@ -1,4 +1,11 @@
 import { Capacitor } from "@capacitor/core";
-const isNative = () => Capacitor.isNativePlatform();
+
+let res: boolean | undefined;
+function isNative() {
+	if (res !== undefined) return res;
+
+	res = Capacitor.isNativePlatform();
+	return res;
+}
 
 export default isNative;
