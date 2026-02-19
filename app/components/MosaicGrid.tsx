@@ -22,9 +22,9 @@ const MosaicGrid = ({
 		<div
 			style={{
 				display: "grid",
-				gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+				gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
 				gap: "20px",
-				gridAutoRows: "150px",
+				gridAutoRows: "250px",
 				gridAutoFlow: "dense",
 				padding: "20px",
 			}}

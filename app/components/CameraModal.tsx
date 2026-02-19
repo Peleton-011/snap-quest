@@ -111,6 +111,7 @@ const CameraModal: React.FC<CameraModalProps> = ({
 						...getTileStyle(tile),
 						position: "relative",
 						overflow: "hidden",
+                        padding: "10px"
 					}}
 				>
 					<ImageCard
