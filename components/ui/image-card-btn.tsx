@@ -37,7 +37,7 @@ export default function ImageCard({
 	return (
 		<button {...props}>
 			<figure className={cn(imageCardVariants({ variant, className }))}>
-				<img className="w-full aspect-4/3" src={imageUrl} alt="image" />
+				<img className="w-full aspect-4/3 object-cover" src={imageUrl} alt="image" />
 				<figcaption className="border-t-2 text-main-foreground border-border p-4">
 					{caption}
 				</figcaption>
