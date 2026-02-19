@@ -1,34 +1,26 @@
 // import { Box, Button, Typography } from "@mui/material";
+import { Button } from "@/components/ui/button";
 import { Prompt, Tile } from "@/app/types/types";
+import CameraModal from "./CameraModal";
 
 const MosaicGrid = ({
 	tiles,
-	onTileClick,
+	onSave,
 	language,
 }: {
 	tiles: Tile[];
-	onTileClick: (tile: Tile) => void;
+	onSave: (
+		id: number,
+		image: Blob | null,
+		orientation: "landscape" | "portrait",
+	) => void;
 	language: string;
 }) => {
-	// Calculate grid layout properties for a tile
-	const getTileStyle = (tile: Tile) => {
-		if (!tile.image) {
-			return {
-				gridColumn: "span 1",
-				gridRow: "span 1",
-			};
-		}
 
-		return {
-			gridColumn: `span ${tile.width || 1}`,
-			gridRow: `span ${tile.height || 1}`,
-			transition: "all 0.3s ease-in-out",
-		};
-	};
 
 	return (
-		<Box
-			sx={{
+		<div
+			style={{
 				display: "grid",
 				gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
 				gap: "20px",
@@ -38,17 +30,23 @@ const MosaicGrid = ({
 			}}
 		>
 			{tiles.map((tile) => (
-				<Box
+				<CameraModal
 					key={tile.id}
-					sx={{
-						...getTileStyle(tile),
-						position: "relative",
-						overflow: "hidden",
-					}}
+					tile={tile}
+					onSave={onSave}
+					language={language}
+				/>
+			))}
+		</div>
+	);
+};
+
+/* 
+<div
+					
 				>
 					<Button
-						fullWidth
-						sx={{
+						style={{
 							height: "100%",
 							backgroundImage: tile.image
 								? `url(${tile.image})`
@@ -59,22 +57,19 @@ const MosaicGrid = ({
 							borderColor: tile.completed
 								? "success.main"
 								: "primary.main",
-							"&:hover": {
-								opacity: 0.9,
-							},
+							
 						}}
 						onClick={() => onTileClick(tile)}
 					>
 						{!tile.image ? (
-							<Typography variant="body2" color="textPrimary">
+							<p color="textPrimary">
 								{tile.prompt.shortPrompt[language]}
-							</Typography>
+							</p>
 						) : null}
 					</Button>
 					{tile.completed && (
-						<Typography
-							variant="caption"
-							sx={{
+						<p
+							style={{
 								position: "absolute",
 								bottom: 0,
 								left: 0,
@@ -86,12 +81,9 @@ const MosaicGrid = ({
 							}}
 						>
 							{tile.prompt.shortPrompt[language]}
-						</Typography>
+						</p>
 					)}
-				</Box>
-			))}
-		</Box>
-	);
-};
+				</div>
+*/
 
 export default MosaicGrid;
