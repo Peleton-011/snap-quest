@@ -104,18 +104,24 @@ const CameraModal: React.FC<CameraModalProps> = ({
 
 	return (
 		<Dialog>
-			<form method="dialog">
+			<form
+				method="dialog"
+				style={{
+					...getTileStyle(tile),
+					position: "relative",
+                    padding: "10px",
+				}}
+			>
 				<DialogTrigger
 					asChild
 					style={{
-						...getTileStyle(tile),
-						position: "relative",
-						overflow: "hidden",
-                        padding: "10px"
+						padding: "10px",
 					}}
 				>
 					<ImageCard
 						variant="button"
+                        height={tile.height || 1}
+                        width={tile.width || 1}
 						caption={tile.prompt.shortPrompt[language]}
 						imageUrl={preview || defaultImg.src}
 					></ImageCard>
@@ -167,7 +173,7 @@ const CameraModal: React.FC<CameraModalProps> = ({
 											Upload or Take a Photo
 										</Label>
 										<input
-                                            id="file"
+											id="file"
 											type="file"
 											accept="image/*"
 											hidden

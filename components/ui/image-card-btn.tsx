@@ -5,6 +5,8 @@ type Props = {
 	imageUrl: string;
 	caption: string;
 	className?: string;
+	height?: string;
+	width?: string;
 };
 
 const imageCardVariants = cva(
@@ -28,16 +30,28 @@ export default function ImageCard({
 	imageUrl,
 	caption,
 	className,
+	height,
+	width,
 	...props
 }: Props &
 	React.ComponentProps<"button"> &
 	VariantProps<typeof imageCardVariants> & {
 		asChild?: boolean;
 	}) {
+        function getRatio(width: string, height: string) {
+            const denominator = parseInt(width) * 4;
+            const numerator = parseInt(height) * denominator - parseInt(width);
+
+            return "aspect-" + numerator + "/" + denominator;
+        }
 	return (
 		<button {...props}>
 			<figure className={cn(imageCardVariants({ variant, className }))}>
-				<img className="w-full aspect-4/3 object-cover" src={imageUrl} alt="image" />
+				<img
+					className={"w-full object-cover " + getRatio(width || "1", height || "1") + " hover:scale-105"}
+					src={imageUrl}
+					alt="image"
+				/>
 				<figcaption className="border-t-2 text-main-foreground border-border p-4">
 					{caption}
 				</figcaption>
