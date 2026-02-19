@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
+import { get } from "http";
 
 type Props = {
 	imageUrl: string;
@@ -38,26 +39,33 @@ export default function ImageCard({
 	VariantProps<typeof imageCardVariants> & {
 		asChild?: boolean;
 	}) {
-	function getRatio(width: string, height: string) {
-		const numerator = parseInt(width) * 4;
-		const denominator = parseInt(height) * 4 - 1;
+	const cellSize = 250;
+	const cellGap = 20;
+	function getWidthCSS(width: string) {
+		const w = cellSize + (parseInt(width) - 1) * (cellSize + cellGap);
 
-		return "" + numerator + "/" + denominator;
+		return {
+			width: `${w}px`,
+		};
 	}
-	function getWidth(width: string) {
-		return parseInt(width) * 250 + (parseInt(width) - 1) * 30 + "px";
+
+	function getHeightCSS(height: string) {
+		const h =
+			(cellSize * 3) / 4 + (parseInt(height) - 1) * (cellSize + cellGap);
+		return {
+			height: `${h}px`,
+		};
 	}
+
 	return (
 		<button {...props}>
 			<figure
 				className={cn(imageCardVariants({ variant, className }))}
-				style={{ width: getWidth(width || "1") }}
+				style={getWidthCSS(width || "1")}
 			>
 				<img
 					className={"w-full object-cover"}
-					style={{
-						aspectRatio: getRatio(width || "1", height || "1"),
-					}}
+					style={getHeightCSS(height || "1")}
 					src={imageUrl}
 					alt="image"
 				/>
