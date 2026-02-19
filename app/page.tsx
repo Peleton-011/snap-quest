@@ -21,7 +21,19 @@ const defaultPromptSet: PromptSet = {
 
 const App: React.FC = () => {
 	const [tiles, setTiles] = useState<Tile[]>([]);
-	const [activeTile, setActiveTile] = useState<Tile | null>(null);
+	const [activeTile, setActiveTile] = useState<Tile | null>({
+		id: -1,
+		prompt: {
+			id: -1,
+			fullPrompt: { en: "pooperty", fr: "poopert" },
+			shortPrompt: { en: "pooperty", fr: "poopert" },
+			promptSetId: -1,
+		},
+		completed: false,
+		image: "https://contenthub-static.grammarly.com/blog/wp-content/uploads/2023/11/Cool_Words.png",
+		width: 0,
+		height: 0,
+	});
 	const [promptSet, setPromptSet] = useState<PromptSet>(defaultPromptSet); // Track the selected prompt set
 	const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 	const [isDownloadingImages, setIsDownloadingImages] = useState(false);
@@ -29,7 +41,7 @@ const App: React.FC = () => {
 	const [promptSets, setPromptSets] = useState<PromptSet[]>([
 		defaultPromptSet,
 	]);
-    
+
 	const [isCustomSet, setIsCustomSet] = useState(false);
 
 	const refreshPromptSets = async () => {
@@ -252,7 +264,6 @@ const App: React.FC = () => {
 					: tile,
 			),
 		);
-		setActiveTile(null);
 	};
 
 	const resetGrid = async () => {
@@ -367,16 +378,6 @@ const App: React.FC = () => {
 			{tiles.length > 0 && (
 				<MosaicGrid
 					tiles={tiles}
-					onTileClick={(tile) => setActiveTile(tile)}
-					language={language}
-				/>
-			)}
-
-			{/* Modal for capturing/uploading images */}
-			{activeTile && (
-				<CameraModal
-					tile={activeTile}
-					onClose={() => setActiveTile(null)}
 					onSave={(id, image, orientation) =>
 						markTileCompleted(id, image, orientation)
 					}
