@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Prompt, Tile } from "@/app/types/types";
 import CameraModal from "./CameraModal";
+import { useEffect, useRef, useState } from "react";
 
 const MosaicGrid = ({
 	tiles,
@@ -16,17 +17,31 @@ const MosaicGrid = ({
 	) => void;
 	language: string;
 }) => {
+	const containerRef = useRef<HTMLDivElement>(null);
+	const [cols, setCols] = useState(3);
+	const MIN_CELL_SIZE = 200;
 
+	useEffect(() => {
+		const el = containerRef.current;
+		if (!el) return;
+		const observer = new ResizeObserver(([entry]) => {
+			const w = entry.contentRect.width;
+			setCols(Math.max(1, Math.floor((w - 20) / MIN_CELL_SIZE)));
+		});
+		observer.observe(el);
+		return () => {
+			observer.disconnect();
+		};
+	}, []);
 
 	return (
 		<div
 			style={{
 				display: "grid",
-				gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-				gap: "20px",
-				gridAutoRows: "250px",
+				gridTemplateColumns: `repeat(auto-fill, minmax(${MIN_CELL_SIZE}px, 1fr))`,
+				gridAutoRows: MIN_CELL_SIZE + "px",
 				gridAutoFlow: "dense",
-				padding: "20px",
+				// padding: "10px",
 			}}
 		>
 			{tiles.map((tile) => (
@@ -35,6 +50,7 @@ const MosaicGrid = ({
 					tile={tile}
 					onSave={onSave}
 					language={language}
+                    cellSize={MIN_CELL_SIZE}
 				/>
 			))}
 		</div>
