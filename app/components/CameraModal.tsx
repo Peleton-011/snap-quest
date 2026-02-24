@@ -28,12 +28,14 @@ interface CameraModalProps {
 		orientation: "landscape" | "portrait",
 	) => void;
 	language: string;
+	cellSize: number;
 }
 
 const CameraModal: React.FC<CameraModalProps> = ({
 	tile,
 	onSave,
 	language,
+	cellSize,
 }) => {
 	const [preview, setPreview] = useState<string | null>(tile.image);
 
@@ -122,6 +124,7 @@ const CameraModal: React.FC<CameraModalProps> = ({
 						variant="button"
                         height={String(tile.height || 1)}
                         width={String(tile.width || 1)}
+						cellSize={cellSize}
 						caption={tile.prompt.shortPrompt[language]}
 						imageUrl={preview || defaultImg.src}
 					></ImageCard>

@@ -7,16 +7,17 @@ type Props = {
 	className?: string;
 	height?: string;
 	width?: string;
+	cellSize?: number;
 };
 
 const imageCardVariants = cva(
-	"w-[250px] overflow-hidden rounded-base border-2 border-border bg-main font-base shadow-shadow transition-all ",
+	"w-full overflow-hidden rounded-base border-2 border-border bg-main font-base shadow-shadow transition-all",
 
 	{
 		variants: {
 			variant: {
 				default: "",
-				button: "w-[250px] overflow-hidden rounded-base border-2 border-border bg-main font-base shadow-shadow hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:pointer-events-none",
+				button: "hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:pointer-events-none",
 			},
 		},
 		defaultVariants: {
@@ -32,43 +33,36 @@ export default function ImageCard({
 	className,
 	height,
 	width,
+	cellSize = 250,
 	...props
 }: Props &
 	React.ComponentProps<"button"> &
 	VariantProps<typeof imageCardVariants> & {
 		asChild?: boolean;
 	}) {
-	const cellSize = 250;
-	const cellGap = 20;
-	function getWidthCSS(width: string) {
-		const w = cellSize + (parseInt(width) - 1) * (cellSize + cellGap);
+	const w = parseInt(width || "1");
+	const h = parseInt(height || "1");
 
-		return {
-			width: `${w}px`,
-		};
-	}
-
-	function getHeightCSS(height: string) {
-		const h =
-			(cellSize * 3) / 4 + (parseInt(height) - 1) * (cellSize + cellGap);
-		return {
-			height: `${h}px`,
-		};
-	}
+	// Image aspect ratio: caption is 1/4 of cellSize, image gets the rest
+	// aspectRatio = (W * 4) / (H * 4 - 1)
+	const imgAspectRatio = (w * 4) / (h * 4 - 1);
 
 	return (
-		<button {...props}>
+		<button {...props} style={{ width: "100%", height: "100%" }}>
 			<figure
 				className={cn(imageCardVariants({ variant, className }))}
-				style={getWidthCSS(width || "1")}
+				style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column" }}
 			>
 				<img
 					className="w-full object-cover"
-					style={getHeightCSS(height || "1")}
+					style={{ aspectRatio: imgAspectRatio, flex: "1 1 auto", minHeight: 0 }}
 					src={imageUrl}
 					alt="image"
 				/>
-				<figcaption className="border-t-2 text-main-foreground border-border p-4">
+				<figcaption
+					className="border-t-2 text-main-foreground border-border p-4"
+					style={{ height: cellSize / 4, flex: "0 0 auto" }}
+				>
 					{caption}
 				</figcaption>
 			</figure>
