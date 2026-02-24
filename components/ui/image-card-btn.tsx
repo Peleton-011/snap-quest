@@ -5,9 +5,9 @@ type Props = {
 	imageUrl: string;
 	caption: string;
 	className?: string;
-	height?: string;
-	width?: string;
-	cellSize?: number;
+	height: string;
+	width: string;
+	cellSize: number;
 };
 
 const imageCardVariants = cva(
@@ -33,19 +33,19 @@ export default function ImageCard({
 	className,
 	height,
 	width,
-	cellSize = 250,
+	cellSize,
 	...props
 }: Props &
 	React.ComponentProps<"button"> &
 	VariantProps<typeof imageCardVariants> & {
 		asChild?: boolean;
 	}) {
-	const w = parseInt(width || "1");
-	const h = parseInt(height || "1");
+	const w = parseInt(width);
+	const h = parseInt(height);
 
 	// Image aspect ratio: caption is 1/4 of cellSize, image gets the rest
 	// aspectRatio = (W * 4) / (H * 4 - 1)
-	const imgAspectRatio = (w * 4) / (h * 4 - 1);
+	const imageAspect = (w * 4) / (h * 4 - 1);
 
 	return (
 		<button {...props} style={{ width: "100%", height: "100%" }}>
@@ -55,9 +55,15 @@ export default function ImageCard({
 			>
 				<img
 					className="w-full object-cover"
-					style={{ aspectRatio: imgAspectRatio, flex: "1 1 auto", minHeight: 0 }}
 					src={imageUrl}
 					alt="image"
+					style={{
+						aspectRatio: imageAspect,
+						width: "100%",
+						objectFit: "cover",
+						flex: "1 1 auto",
+						minHeight: 0,
+					}}
 				/>
 				<figcaption
 					className="border-t-2 text-main-foreground border-border p-4"

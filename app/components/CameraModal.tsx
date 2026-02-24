@@ -111,29 +111,19 @@ const CameraModal: React.FC<CameraModalProps> = ({
 				style={{
 					...getTileStyle(tile),
 					position: "relative",
-                    padding: "10px",
 				}}
 			>
 				<DialogTrigger
 					asChild
-					style={{
-						padding: "10px",
-					}}
 				>
 					<ImageCard
 						variant="button"
-                        height={String(tile.height || 1)}
-                        width={String(tile.width || 1)}
+						height={String(tile.height || 1)}
+						width={String(tile.width || 1)}
 						cellSize={cellSize}
 						caption={tile.prompt.shortPrompt[language]}
 						imageUrl={preview || defaultImg.src}
 					></ImageCard>
-					{/* <Button asChild>
-						<ImageCard
-							caption={label}
-							imageUrl={preview || ""}
-						></ImageCard>
-					</Button> */}
 				</DialogTrigger>
 				<DialogContent className="modal">
 					<DialogHeader>

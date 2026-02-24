@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { Tile } from "@/app/types/types";
 import CameraModal from "./CameraModal";
 
-const MIN_CELL = 250;
+const MIN_CELL = 200;
 const GAP = 20;
 
 const MosaicGrid = ({
@@ -45,7 +45,6 @@ const MosaicGrid = ({
 				gap: `${GAP}px`,
 				gridAutoRows: `${cellSize}px`,
 				gridAutoFlow: "dense",
-				padding: "20px",
 			}}
 		>
 			{tiles.map((tile) => (
@@ -60,50 +59,5 @@ const MosaicGrid = ({
 		</div>
 	);
 };
-
-/* 
-<div
-					
-				>
-					<Button
-						style={{
-							height: "100%",
-							backgroundImage: tile.image
-								? `url(${tile.image})`
-								: "none",
-							backgroundSize: "cover",
-							backgroundPosition: "center",
-							border: "1px solid",
-							borderColor: tile.completed
-								? "success.main"
-								: "primary.main",
-							
-						}}
-						onClick={() => onTileClick(tile)}
-					>
-						{!tile.image ? (
-							<p color="textPrimary">
-								{tile.prompt.shortPrompt[language]}
-							</p>
-						) : null}
-					</Button>
-					{tile.completed && (
-						<p
-							style={{
-								position: "absolute",
-								bottom: 0,
-								left: 0,
-								right: 0,
-								backgroundColor: "rgba(0, 0, 0, 0.6)",
-								color: "white",
-								padding: "4px",
-								textAlign: "center",
-							}}
-						>
-							{tile.prompt.shortPrompt[language]}
-						</p>
-					)}
-				</div>
-*/
 
 export default MosaicGrid;
