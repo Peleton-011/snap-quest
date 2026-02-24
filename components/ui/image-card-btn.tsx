@@ -38,12 +38,33 @@ export default function ImageCard({
 	VariantProps<typeof imageCardVariants> & {
 		asChild?: boolean;
 	}) {
+	const cellSize = 250;
+	const cellGap = 20;
+	function getWidthCSS(width: string) {
+		const w = cellSize + (parseInt(width) - 1) * (cellSize + cellGap);
+
+		return {
+			width: `${w}px`,
+		};
+	}
+
+	function getHeightCSS(height: string) {
+		const h =
+			(cellSize * 3) / 4 + (parseInt(height) - 1) * (cellSize + cellGap);
+		return {
+			height: `${h}px`,
+		};
+	}
+
 	return (
 		<button {...props}>
-			<figure className={cn(imageCardVariants({ variant, className }))}>
+			<figure
+				className={cn(imageCardVariants({ variant, className }))}
+				style={getWidthCSS(width || "1")}
+			>
 				<img
-					className="w-full object-cover hover:scale-105"
-					style={{ aspectRatio: `${width || 1} / ${height || 1}` }}
+					className="w-full object-cover"
+					style={getHeightCSS(height || "1")}
 					src={imageUrl}
 					alt="image"
 				/>
