@@ -120,8 +120,8 @@ const CameraModal: React.FC<CameraModalProps> = ({
 				>
 					<ImageCard
 						variant="button"
-                        height={tile.height || 1}
-                        width={tile.width || 1}
+                        height={String(tile.height || 1)}
+                        width={String(tile.width || 1)}
 						caption={tile.prompt.shortPrompt[language]}
 						imageUrl={preview || defaultImg.src}
 					></ImageCard>
