@@ -9,6 +9,7 @@ type Props = {
 	height: string;
 	width: string;
 	cellSize: number;
+	gap: number;
 };
 
 const imageCardVariants = cva(
@@ -35,6 +36,7 @@ export default function ImageCard({
 	height,
 	width,
 	cellSize,
+	gap,
 	...props
 }: Props &
 	React.ComponentProps<"button"> &
@@ -44,11 +46,17 @@ export default function ImageCard({
 	const cardWidth = parseInt(width) * cellSize;
 	const imageAspect = (parseInt(width) * 4) / (parseInt(height) * 4 - 1);
 
+	const actualWidth = Number(width) * cellSize + (Number(width) - 1) * gap;
+	const actualHeight = Number(height) * cellSize + (Number(height) - 1) * gap;
+
 	return (
 		<button {...props}>
 			<figure
 				className={cn(imageCardVariants({ variant, className }))}
-				style={{ width: cardWidth + "px" }}
+				style={{
+					width: actualWidth + "px",
+					height: actualHeight + "px",
+				}}
 			>
 				<img
 					className={"w-full object-cover"}
@@ -61,8 +69,8 @@ export default function ImageCard({
 					}}
 				/>
 				<figcaption
-					className="border-t-2 text-main-foreground border-border flex justify-center items-center px-4 py-2"
-					style={{ height: cellSize / 4 }}
+					className="border-t-2 text-main-foreground border-border flex justify-start items-center px-4 py-2"
+					style={{ height: cellSize / 4 - 1 }} // subtract one to account for figcaption border
 				>
 					{caption}
 				</figcaption>

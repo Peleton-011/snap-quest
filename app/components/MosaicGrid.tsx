@@ -19,21 +19,23 @@ const MosaicGrid = ({
 }) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [cols, setCols] = useState(3);
-    const [cellSize, setCellSize] = useState(0);
+	const [cellSize, setCellSize] = useState(0);
 	const MIN_CELL_SIZE = 200;
-    const GAP = 10;
+	const GAP = 13;
 
 	useEffect(() => {
 		const el = containerRef.current;
-        console.log(el)
 		if (!el) return;
 		const observer = new ResizeObserver(([entry]) => {
-			const w = entry.contentRect.width;
-			const c = Math.max(1, Math.floor(w / MIN_CELL_SIZE));
-            setCols(c);
-            setCellSize((w - GAP * (c - 1)) / c);
-
-            console.log(c, w, cellSize);
+			const containerWidth = entry.contentRect.width;
+			const cellColumns = Math.max(
+				1,
+				Math.floor(containerWidth / MIN_CELL_SIZE),
+			);
+			setCols(cellColumns);
+			setCellSize(
+				(containerWidth - GAP * (cellColumns -1)) / cellColumns,
+			);
 		});
 		observer.observe(el);
 		return () => {
@@ -43,13 +45,16 @@ const MosaicGrid = ({
 
 	return (
 		<div
-            ref={containerRef}
+			ref={containerRef}
 			style={{
 				display: "grid",
 				gridTemplateColumns: `repeat(auto-fill, minmax(${MIN_CELL_SIZE}px, 1fr))`,
 				gridAutoRows: cellSize + "px",
 				gridAutoFlow: "dense",
 				// padding: "10px",
+				rowGap: GAP + "px",
+				columnGap: GAP + "px",
+				margin: GAP + "px",
 			}}
 		>
 			{tiles.map((tile) => (
@@ -59,55 +64,11 @@ const MosaicGrid = ({
 					onSave={onSave}
 					language={language}
 					cellSize={cellSize}
+					gap={GAP}
 				/>
 			))}
 		</div>
 	);
 };
-
-/* 
-<div
-					
-				>
-					<Button
-						style={{
-							height: "100%",
-							backgroundImage: tile.image
-								? `url(${tile.image})`
-								: "none",
-							backgroundSize: "cover",
-							backgroundPosition: "center",
-							border: "1px solid",
-							borderColor: tile.completed
-								? "success.main"
-								: "primary.main",
-							
-						}}
-						onClick={() => onTileClick(tile)}
-					>
-						{!tile.image ? (
-							<p color="textPrimary">
-								{tile.prompt.shortPrompt[language]}
-							</p>
-						) : null}
-					</Button>
-					{tile.completed && (
-						<p
-							style={{
-								position: "absolute",
-								bottom: 0,
-								left: 0,
-								right: 0,
-								backgroundColor: "rgba(0, 0, 0, 0.6)",
-								color: "white",
-								padding: "4px",
-								textAlign: "center",
-							}}
-						>
-							{tile.prompt.shortPrompt[language]}
-						</p>
-					)}
-				</div>
-*/
 
 export default MosaicGrid;

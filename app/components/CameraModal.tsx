@@ -29,6 +29,7 @@ interface CameraModalProps {
 	) => void;
 	language: string;
 	cellSize: number;
+	gap: number;
 }
 
 const CameraModal: React.FC<CameraModalProps> = ({
@@ -36,6 +37,7 @@ const CameraModal: React.FC<CameraModalProps> = ({
 	onSave,
 	language,
 	cellSize,
+	gap,
 }) => {
 	const [preview, setPreview] = useState<string | null>(tile.image);
 
@@ -111,14 +113,17 @@ const CameraModal: React.FC<CameraModalProps> = ({
 				style={{
 					...getTileStyle(tile),
 					position: "relative",
+					aspectRatio: "1/1",
 					// padding: "10px",
 				}}
 			>
 				<DialogTrigger
 					asChild
-					style={{
-						// padding: "10px",
-					}}
+					style={
+						{
+							// padding: "10px",
+						}
+					}
 				>
 					<ImageCard
 						variant="button"
@@ -126,7 +131,8 @@ const CameraModal: React.FC<CameraModalProps> = ({
 						width={String(tile.width || 1)}
 						caption={tile.prompt.shortPrompt[language]}
 						imageUrl={preview || defaultImg.src}
-                        cellSize={cellSize}
+						cellSize={cellSize}
+						gap={gap}
 					></ImageCard>
 					{/* <Button asChild>
 						<ImageCard
