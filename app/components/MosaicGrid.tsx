@@ -19,14 +19,21 @@ const MosaicGrid = ({
 }) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [cols, setCols] = useState(3);
+    const [cellSize, setCellSize] = useState(0);
 	const MIN_CELL_SIZE = 200;
+    const GAP = 10;
 
 	useEffect(() => {
 		const el = containerRef.current;
+        console.log(el)
 		if (!el) return;
 		const observer = new ResizeObserver(([entry]) => {
 			const w = entry.contentRect.width;
-			setCols(Math.max(1, Math.floor((w - 20) / MIN_CELL_SIZE)));
+			const c = Math.max(1, Math.floor(w / MIN_CELL_SIZE));
+            setCols(c);
+            setCellSize((w - GAP * (c - 1)) / c);
+
+            console.log(c, w, cellSize);
 		});
 		observer.observe(el);
 		return () => {
@@ -36,10 +43,11 @@ const MosaicGrid = ({
 
 	return (
 		<div
+            ref={containerRef}
 			style={{
 				display: "grid",
 				gridTemplateColumns: `repeat(auto-fill, minmax(${MIN_CELL_SIZE}px, 1fr))`,
-				gridAutoRows: MIN_CELL_SIZE + "px",
+				gridAutoRows: cellSize + "px",
 				gridAutoFlow: "dense",
 				// padding: "10px",
 			}}
@@ -50,7 +58,7 @@ const MosaicGrid = ({
 					tile={tile}
 					onSave={onSave}
 					language={language}
-                    cellSize={MIN_CELL_SIZE}
+					cellSize={cellSize}
 				/>
 			))}
 		</div>

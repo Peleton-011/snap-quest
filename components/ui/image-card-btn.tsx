@@ -48,7 +48,7 @@ export default function ImageCard({
 		<button {...props}>
 			<figure
 				className={cn(imageCardVariants({ variant, className }))}
-				style={{ width: cardWidth }}
+				style={{ width: cardWidth + "px" }}
 			>
 				<img
 					className={"w-full object-cover"}
