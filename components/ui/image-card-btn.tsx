@@ -61,7 +61,7 @@ export default function ImageCard({
 					}}
 				/>
 				<figcaption
-					className="border-t-2 text-main-foreground border-border p-4"
+					className="border-t-2 text-main-foreground border-border flex justify-center items-center px-4 py-2"
 					style={{ height: cellSize / 4 }}
 				>
 					{caption}
