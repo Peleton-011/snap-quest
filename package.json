@@ -40,7 +40,8 @@
     "react-dom": "^18.2.0",
     "tailwind-merge": "^3.4.1",
     "tailwindcss": "^4.1.18",
-    "typescript-eslint": "^8.16.0"
+    "typescript-eslint": "^8.16.0",
+    "vaul": "^1.1.2"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^15.1.1",
