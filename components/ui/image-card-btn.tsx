@@ -44,17 +44,17 @@ export default function ImageCard({
 		asChild?: boolean;
 	}) {
 	const cardWidth = parseInt(width) * cellSize;
-	const imageAspect = (parseInt(width) * 4) / (parseInt(height) * 4 - 1);
-
+    
 	const actualWidth = Number(width) * cellSize + (Number(width) - 1) * gap;
 	const actualHeight = Number(height) * cellSize + (Number(height) - 1) * gap;
-
+    
+	const imageAspect = (actualWidth * 4) / (actualHeight * 4 - cellSize);
 	return (
 		<button {...props}>
 			<figure
 				className={cn(imageCardVariants({ variant, className }))}
 				style={{
-					width: cardWidth + "px",
+					width: actualWidth + "px",
 					// height: actualHeight + "px",
 				}}
 			>

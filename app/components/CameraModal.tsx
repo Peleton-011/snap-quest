@@ -118,7 +118,7 @@ const CameraModal: React.FC<CameraModalProps> = ({
 				style={{
 					...getTileStyle(tile),
 					position: "relative",
-					aspectRatio: "1/1",
+					// aspectRatio: "1/1",
 					// padding: "10px",
 				}}
 			>
