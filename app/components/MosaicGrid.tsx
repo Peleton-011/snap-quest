@@ -48,7 +48,7 @@ const MosaicGrid = ({
 			ref={containerRef}
 			style={{
 				display: "grid",
-				gridTemplateColumns: `repeat(auto-fill, minmax(${MIN_CELL_SIZE}px, 1fr))`,
+				gridTemplateColumns: `repeat(auto-fill, minmax(${cellSize}px, 1fr))`,
 				gridAutoRows: cellSize + "px",
 				gridAutoFlow: "dense",
 				// padding: "10px",
