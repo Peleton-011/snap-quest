@@ -54,8 +54,8 @@ export default function ImageCard({
 			<figure
 				className={cn(imageCardVariants({ variant, className }))}
 				style={{
-					width: actualWidth + "px",
-					height: actualHeight + "px",
+					width: cardWidth + "px",
+					// height: actualHeight + "px",
 				}}
 			>
 				<img

@@ -29,6 +29,7 @@ interface CameraModalProps {
 	) => void;
 	language: string;
 	cellSize: number;
+    cellColumns: number;
 	gap: number;
 }
 
@@ -37,9 +38,13 @@ const CameraModal: React.FC<CameraModalProps> = ({
 	onSave,
 	language,
 	cellSize,
+    cellColumns,
 	gap,
 }) => {
 	const [preview, setPreview] = useState<string | null>(tile.image);
+
+    const actualWidth = Math.min(cellColumns, tile.width || 1);
+    const actualHeight = Math.min(cellColumns, tile.height || 1);
 
 	// Calculate grid layout properties for a tile
 	const getTileStyle = (tile: Tile) => {
@@ -51,8 +56,8 @@ const CameraModal: React.FC<CameraModalProps> = ({
 		}
 
 		return {
-			gridColumn: `span ${tile.width || 1}`,
-			gridRow: `span ${tile.height || 1}`,
+			gridColumn: `span ${actualWidth}`,
+			gridRow: `span ${actualHeight}`,
 			transition: "all 0.3s ease-in-out",
 		};
 	};
@@ -127,8 +132,8 @@ const CameraModal: React.FC<CameraModalProps> = ({
 				>
 					<ImageCard
 						variant="button"
-						height={String(tile.height || 1)}
-						width={String(tile.width || 1)}
+						height={String(actualHeight)}
+						width={String(actualWidth)}
 						caption={tile.prompt.shortPrompt[language]}
 						imageUrl={preview || defaultImg.src}
 						cellSize={cellSize}

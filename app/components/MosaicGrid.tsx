@@ -30,7 +30,7 @@ const MosaicGrid = ({
 			const containerWidth = entry.contentRect.width;
 			const cellColumns = Math.max(
 				1,
-				Math.floor(containerWidth / MIN_CELL_SIZE),
+				Math.floor((containerWidth - 2 * GAP) / MIN_CELL_SIZE),
 			);
 			setCols(cellColumns);
 			setCellSize(
@@ -64,6 +64,7 @@ const MosaicGrid = ({
 					onSave={onSave}
 					language={language}
 					cellSize={cellSize}
+                    cellColumns={cols}
 					gap={GAP}
 				/>
 			))}
