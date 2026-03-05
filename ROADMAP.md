@@ -35,3 +35,11 @@ Full roadmap towards a working app:
 23. **Build session state UI** — Show connected users, which prompts each user has submitted photos for, live status
 24. **Generate combined PDF** — Pull all users' images from the session, lay them out grouped by prompt (e.g., a row per prompt with each user's photo side by side)
 25. **Handle edge cases** — User disconnects mid-transfer, host leaves (migrate host or end session), duplicate submissions, network switching
+
+
+
+## Addendum: Drawer options (exports)
+Share Story	Single PNG, all tiles in a grid — for social media
+Mosaic PDF	Print-friendly version of the grid
+Scrapbook PDF	One styled page per tile — the card concept, but as a single shareable PDF instead of a zip of images
+Save Photos	Raw images zipped
