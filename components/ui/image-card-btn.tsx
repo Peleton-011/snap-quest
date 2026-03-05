@@ -48,9 +48,8 @@ export default function ImageCard({
 	const actualWidth = Number(width) * cellSize + (Number(width) - 1) * gap;
 	const actualHeight = Number(height) * cellSize + (Number(height) - 1) * gap;
     
-	const imageAspect = (actualWidth * 4) / (actualHeight * 4 - cellSize);
+	const imageAspect = (actualWidth * 4) / (actualHeight * 4 - cellSize) || 1;
 
-    console.log(...arguments, actualHeight, actualWidth, imageAspect)
 	return (
 		<button {...props}>
 			<figure

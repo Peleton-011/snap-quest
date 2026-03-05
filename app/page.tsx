@@ -120,13 +120,11 @@ const App: React.FC = () => {
 			sizes.push({ width: 2, height: 2 });
 
 			if (orientation === "portrait") {
-				console.log("portrait");
 				// Add vertical rectangles (1x2)
 				sizes.push({ width: 1, height: 2 });
 				sizes.push({ width: 1, height: 2 });
 				sizes.push({ width: 2, height: 3 });
 			} else if (orientation === "landscape") {
-				console.log("landscape");
 				// Add horizontal rectangles (2x1)
 				sizes.push({ width: 2, height: 1 });
 				sizes.push({ width: 2, height: 1 });
