@@ -9,8 +9,6 @@ import { downloadImagesAsZip } from "./services/zipImages";
 // import "./app.css";
 import { PromptSet, Prompt, Tile } from "./types/types";
 import MosaicGrid from "./components/MosaicGrid";
-import { Filesystem, Directory } from "@capacitor/filesystem";
-import { Share } from "@capacitor/share";
 import isNative from "./services/platform";
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
