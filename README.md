@@ -60,6 +60,10 @@ SnapQuest is an engaging and interactive photo scavenger hunt game where players
 - AI-based image recognition for better prompt validation.
 - Mobile app version for iOS & Android.
 
+## Styling
+
+SnapQuest uses this library of compoents: https://www.neobrutalism.dev/styling
+
 ---
 
 SnapQuest is a fun way to challenge your creativity and photography skills. Try it today and start snapping!
